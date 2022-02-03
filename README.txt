@@ -1,7 +1,5 @@
 To execute code:
-g++ -std=c++11 -g main.cpp parser.cpp polygon.cpp geometry.cpp vector.cpp energy.cpp force.cpp transitionT1.cpp -o main
-To run:
-./main vertices.txt edges.txt cell_indices.txt ./result
-result is currently not doing anything - fix that
+type make or do g++ -std=c++11 -g src/main.cpp src/parser.cpp src/polygon.cpp src/geometry.cpp src/vector.cpp src/energy.cpp src/force.cpp src/transitionT1.cpp -o vertexcell
 
-Create make file for building
+To run:
+./vertexcell vertex_file edges_file cells_file
