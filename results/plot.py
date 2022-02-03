@@ -1,73 +1,114 @@
-import networkx as nx
-import matplotlib.pyplot as plt
+#!/usr/bin/python
 import numpy as np
-from math import sqrt, pi, sin, cos, acos, atan2, floor
+import matplotlib.pyplot as plt
+import sys
 
+
+# Difference with respect to periodic boundaries
 def periodic_diff(v1, v2, L):
-	return ((v1 - v2 + L/2.) % L) - L/2.
-
-lx = 9 * (2 / (3 * (3**0.5)))**0.5
-ly = 4 * (2 / (3**0.5))**0.5
-L = np.array((lx,ly))
-
-with open('../data2/cell_indices.txt') as f:
-#with open('network_cells.txt') as f:
-    cell_indices = [[int(a) for a in line.split()] for line in f]
-    # print(cell_indices)
-
-with open('../data2/vertices.txt') as f:
-#with open('vertex_coord.txt') as f:
-    # x, y = [float(a) for a in next(f).split()]
-    vertices = [[float(a) for a in line.split()] for line in f]
-    vertex_indices = {v: k for v, k in enumerate(vertices)}
-    # print(vertex_indices)
-
-with open('../data2/edges.txt') as f:
-#with open('edges_index.txt') as f:
-    edges = [[int(a) for a in line.split()] for line in f]
-    # print(edges)
-
-plt.cla()
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
-for x,y in vertices:
-    ax.scatter(x, y, c="m", marker=".", s=50)
-
-for i in cell_indices:
-    indices = i
-    for j, index in enumerate(indices):
-        x1, y1 = vertices[index]
-        if j == len(indices) - 1:
-            x2, y2 = vertices[indices[0]]
-        else:
-            x2, y2 = vertices[indices[j+1]]
-        v1 = np.array((x1,y1))
-        v2 = np.array((x2,y2))
-        v2 = v1 + periodic_diff(v2, v1, L)
-        x2, y2 = v2
-        ax.plot([x1,x2], [y1,y2], c="black")
-        
-        v2 = np.array((x2,y2))
-        v1 = v2 + periodic_diff(v1, v2, L)
-        x1, y1 = v1
-        ax.plot([x1,x2], [y1,y2], c="black")
+    return ((v1 - v2 + L/2.) % L) - L/2.
 
 
-G = nx.Graph()
+def periodic_plot(x1, y1, x2, y2, color):
 
-#G.add_edges_from(edges)
+    #L = np.array([lx,ly])
+    L = np.array([1., 1.])
 
-options = {
-    "font_size": 11,
-    "node_size": 1,
-    "node_color": "white",
-    "edgecolors": "black",
-}
+    v1 = np.array((x1, y1))
+    v2 = np.array((x2, y2))
+    v2 = v1 + periodic_diff(v2, v1, L)
+    x2, y2 = v2
+    plt.plot([x1, x2], [y1, y2], c=color)
 
-#nx.draw_networkx(G, vertex_indices, **options)
+    # v2 = np.array((x2,y2))
+    # v1 = v2 + periodic_diff(v1, v2, L)
+    # x1,y1 = v1
+    # plt.plot([x1,x2], [y1,y2], c=color)
 
-# Set margins for the axes so that nodes aren't clipped
-ax = plt.gca()
-ax.margins(0.20)
-plt.axis("off")
-plt.show()
+    return
+
+
+def plot_points(vertices):
+    for x, y in vertices:
+        plt.scatter(x, y, color="r")
+    return
+
+
+def plot_edges(vertices, edges):
+    for i1, i2 in edges:
+        if i1 != -1 and i2 != -1:
+            x1, y1 = vertices[i1]
+            x2, y2 = vertices[i2]
+            periodic_plot(x1, y1, x2, y2, "k")
+    return
+
+
+def plot_polygons(vertices, polys):
+
+    for poly in polys:
+        for i, index in enumerate(poly):
+
+            if index == poly[-1]:
+                if index != -1 and poly[0] != -1:
+                    x1, y1 = vertices[index]
+                    x2, y2 = vertices[poly[0]]
+                    periodic_plot(x1, y1, x2, y2, "k")
+            else:
+                if index != -1 and poly[i+1] != -1:
+                    x1, y1 = vertices[index]
+                    x2, y2 = vertices[poly[i+1]]
+                    periodic_plot(x1, y1, x2, y2, "k")
+    return
+
+
+def save_plot(outfile):
+
+    # remove tick marks
+    frame = plt.gca()
+    frame.axes.get_xaxis().set_ticks([])
+    frame.axes.get_yaxis().set_ticks([])
+
+    plt.axis([0, 1, 0, 1])
+
+    # save and close plot
+    plt.savefig(outfile)
+    plt.close()
+    return
+
+
+def read_poly(file):
+    indices = []
+    f = open(file)
+    for line in f:
+        cell_indices = []
+        linesplit = line.strip().split("\t")
+        for i in linesplit:
+            cell_indices.append(int(i))
+        indices.append(cell_indices)
+    f.close()
+    return indices
+
+
+# filename for plot
+outfile = sys.argv[1]
+
+#lx = 9 * (2 / (3 * (3**0.5)))**0.5
+#ly = 4 * (2 / (3**0.5))**0.5
+
+
+vertex_file = "vertex_coord.txt"
+edge_file = "edges_index.txt"
+poly_file = "network_cells.txt"
+
+
+vertices = np.loadtxt(vertex_file)
+edges = np.loadtxt(edge_file, dtype=int)
+polys = read_poly(poly_file)
+
+
+plot_points(vertices)
+plot_polygons(vertices, polys)
+plot_edges(vertices, edges)
+
+
+save_plot(outfile)
