@@ -599,7 +599,6 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 		}
 	}
 	// return T1_data;
-	// FIXME
 	T1_data = make_tuple(network, edges, vertices);
 	return T1_data;
 }
@@ -664,7 +663,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	std::vector<double> vertex2 = vertices[i2];
 	std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L));
 
-	// Set new vertices
+	// Set new vertices positions so that i1 and i2 are separated by ksep * lmin
 	std::vector<double> move_v1_transition = set_separation_transition(v1[0], v1[1], v2[0], v2[1], ksep, lmin);
 	vertices[i1][0] = move_v1_transition[0];
 	vertices[i1][1] = move_v1_transition[1];

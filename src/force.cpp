@@ -45,12 +45,14 @@ std::vector<std::vector<double> > move_vertices(std::vector<std::vector<double> 
     {
         std::fill(updated_vertices[i].begin(), updated_vertices[i].end(), 0);
     }
-
+    
     for (int i = 0; i < vertices.size(); i++)
     {
         assert(vertices.size() == forces.size());
         updated_vertices[i] = add_vectors(vertices[i], scale_vector(forces[i], delta_t));
         double diff_dist = get_euclidian_distance(vertices[i][0], vertices[i][1], updated_vertices[i][0], updated_vertices[i][1]);
+        // Update vertices positions only if the vertex displacement is smaller than lmin/2
+        // This step should prevent cells intersecting each other. ref: https://doi.org/10.1016/j.pbiomolbio.2013.09.003
         if (diff_dist < (lmin / 2))
         {
             vertices[i] = updated_vertices[i];

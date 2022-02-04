@@ -29,21 +29,20 @@ int main(int argc, char *argv[])
 
     std::vector<double> L{lx, ly};
 
-    double ka = 0.1;
-    double A0 = 0.01; // current preferred area for polygon
-    double eta = 0.1;
+    double ka = 1; //area force coefficint
+    double A0 = 1; // current preferred area for polygon
+    double eta = 0.1; // drag coefficient
     double gamma = 0.04 * ka * A0; // hexagonal network
     // gamma = 0.1 * ka * A0 // soft network
     double Lambda = 0.12 * ka * sqrt(pow(A0, 3)); // hexagonal network
     // Lambda = -0.85 * ka * A0**(3/2) // soft network
-    double lmin = 0.2;
+    double lmin = 0.1; // cell rearangment treshold
     double ksep = 3.0;
-    double delta_t = 0.1;
-    //double eta = 0.01;
+    double delta_t = 0.01;
     double xi = 0.2;
 
     // maximum Time
-    double T = 10;
+    double T = 1;
     double pi = atan(1) * 4;
 
     // open vertices file

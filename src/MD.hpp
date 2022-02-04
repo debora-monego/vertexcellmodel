@@ -214,14 +214,6 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         vertices = move_vertices(vertices, forces, lx, ly, delta_t, lmin);
         out_vertexfile << "timestep = " << t << '\n';
         out_vertexfile << "vx" << std::setw(10) << "vy" << '\n';
-        for (std::vector<double> i : vertices)
-        {
-            for (double j : i)
-            {
-                out_vertexfile << j << std::setw(10);
-            }
-            out_vertexfile << '\n';
-        }
 
         // Check for T1 transitions
         std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data = T1_transition(vertices, network, edges, lx, ly, lmin, ka, Lambda, gamma, ksep);
@@ -237,6 +229,14 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
                 out_edgefile << j << std::setw(10);
             }
             out_edgefile << '\n';
+        }
+        for (std::vector<double> i : vertices)
+        {
+            for (double j : i)
+            {
+                out_vertexfile << j << std::setw(10);
+            }
+            out_vertexfile << '\n';
         }
     }
 

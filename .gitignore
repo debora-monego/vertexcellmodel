@@ -1,7 +1,4 @@
-# exclude data directories
-
 data
-
 data2
-
 *.dSYM
+log_aux.txt

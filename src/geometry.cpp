@@ -105,7 +105,8 @@ double get_perimeter(std::vector<std::vector<double> > vertices)
     return perimeter;
 }
 
-//FIXME
+// This function sets the new separation between two vertices after a T1 transition
+// The new separation is equal to ksep * lmin
 std::vector<double> set_separation_transition(double x0, double y0, double x1, double y1, double ksep, double lmin)
 {
     double x_diff = x1 - x0;
