@@ -26,10 +26,12 @@ std::vector<std::vector<double> > get_forces(std::vector<std::vector<double> > v
     for (int i = 0; i < vertices.size(); i++)
     {
         assert(f1.size() == f2.size());
-        assert(f3.size() == f4.size());
+        assert(f3.size() == f2.size());
         assert(f4.size() == f1.size());
 
         result_force[i] = scale_vector(add_vectors(f1[i], f2[i], f3[i], f4[i]), -1);
+        // result_force[i] = add_vectors(f1[i], f2[i]);
+        // result_force[i] = scale_vector(add_vectors(result_force[i], f3[i]), -1);
     }
 
     return result_force;

@@ -42,6 +42,9 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     out_logfile << "timestep" << std::setw(20) << "f_total" << std::setw(20) << "f_elasticity" << std::setw(20) << "f_contraction" << std::setw(20)
                 << "f_adhesion" << std::setw(20) << "f_motility" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
                 << "e_adhesion" << std::setw(20) << "e_contraction" << '\n';
+    // out_logfile << "timestep" << std::setw(20) << "f_total" << std::setw(20) << "f_elasticity" << std::setw(20) << "f_contraction" << std::setw(20)
+    //             << "f_adhesion" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
+    //             << "e_adhesion" << std::setw(20) << "e_contraction" << '\n';
 
     std::vector<double> L{lx, ly};
 
@@ -209,6 +212,9 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         out_logfile << t << std::setw(20) << f_total << std::setw(20) << f_elasticity_total << std::setw(20) << f_contraction_total << std::setw(20)
                     << f_adhesion_total << std::setw(20) << f_motility_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
                     << e_adhesion << std::setw(20) << e_contraction << '\n';
+        // out_logfile << t << std::setw(20) << f_total << std::setw(20) << f_elasticity_total << std::setw(20) << f_contraction_total << std::setw(20)
+        //             << f_adhesion_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
+        //             << e_adhesion << std::setw(20) << e_contraction << '\n';
 
         // Move vertices
         vertices = move_vertices(vertices, forces, lx, ly, delta_t, lmin);
@@ -280,7 +286,14 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     {
         for (int j = 0; j < vertices[0].size(); j++)
         {
-            final_vertex << vertices[i][j] << ' ';
+            if (j == vertices[0].size() - 1)
+            {
+                final_vertex << vertices[i][j];
+            }
+            else
+            {
+                final_vertex << vertices[i][j] << ' ';
+            }
         }
         final_vertex << '\n';
     }
@@ -295,7 +308,14 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     {
         for (int j = 0; j < edges[0].size(); j++)
         {
-            final_edge << edges[i][j] << ' ';
+            if (j == edges[0].size() - 1)
+            {
+                final_edge << edges[i][j];
+            }
+            else
+            {
+                final_edge << edges[i][j] << '\t';
+            }
         }
         final_edge << '\n';
     }
@@ -323,4 +343,10 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     }
 
     final_network.close();
+
+    // Delete aux file
+    if (remove("log_aux.txt") != 0)
+        perror("Error deleting transitions aux file");
+    else
+        puts("Transitions aux file successfully deleted");
 }

@@ -319,10 +319,6 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_right(std::v
 	}
 
 	// Define polygons
-	// Polygon cell_0 = network_r[cell_ids[0]];
-	// Polygon cell_1 = network_r[cell_ids[1]];
-	// Polygon cell_2 = network_r[cell_ids[2]];
-	// Polygon cell_3 = network_r[cell_ids[3]];
 	Polygon cell_0 = network_r[0];
 	Polygon cell_1 = network_r[1];
 	Polygon cell_2 = network_r[2];
@@ -598,16 +594,13 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 			}
 		}
 	}
-	// return T1_data;
-	T1_data = make_tuple(network, edges, vertices);
 	return T1_data;
 }
 
 // Set new cell indices, vertex positions, and edges for T1 left transition
 std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > set_T1_left(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_l_data,
 																												 std::vector<int> cell_ids, std::vector<std::vector<int> > edges, std::vector<int> vertex_indices, double lx, double ly,
-																												 double lmin, double ksep,
-																												 std::vector<std::vector<double> > vertices)
+																												 double lmin, double ksep, std::vector<std::vector<double> > vertices)
 {
 	std::vector<Polygon> network_l = T1_l_data.first;
 
@@ -625,35 +618,26 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	int i5 = vertex_indices[4];
 	for (int i = 0; i < edges.size(); i++)
 	{
-		// cout << "Set new edges entered\n";
 		std::vector<int> edge = edges[i];
 		// i1-i3 becomes i2-i3
 		if (edge[0] == i1 && edge[1] == i3)
 		{
-			// cout << "set edge1\n";
 			edges[i][0] = i2;
-			// cout << "entrou if 1 left\n";
 		}
 		// i2-i5 becomes i1-i5
-		if (edge[0] == i5 && edge[1] == i2)
+		if (edge[0] == i2 && edge[1] == i5)
 		{
-			// cout << "set edge2\n";
 			edges[i][0] = i1;
-			// cout << "entrou if 2 left\n";
 		}
 		// i3-i1 becomes i3-i2
 		if (edge[0] == i3 && edge[1] == i1)
 		{
-			// cout << "set edge3\n";
 			edges[i][1] = i2;
-			// cout << "entrou if 3 left\n";
 		}
 		// i5-i2 becomes i5-i1
-		if (edge[0] == i5 && edge[1] == i1)
+		if (edge[0] == i5 && edge[1] == i2)
 		{
-			// cout << "set edge4\n";
 			edges[i][1] = i1;
-			// cout << "entrou if 4 left\n";
 		}
 	}
 
@@ -675,8 +659,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 // Set new cell indices and edges for T1 right transition
 std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > set_T1_right(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_r_data, std::vector<int> cell_ids,
 																												  std::vector<std::vector<int> > edges, std::vector<int> vertex_indices, double lx, double ly,
-																												  double lmin, double ksep,
-																												  std::vector<std::vector<double> > vertices)
+																												  double lmin, double ksep, std::vector<std::vector<double> > vertices)
 {
 	std::vector<Polygon> network_r = T1_r_data.first;
 
@@ -690,8 +673,8 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	// Set new edges
 	int i1 = vertex_indices[0];
 	int i2 = vertex_indices[1];
-	int i4 = vertex_indices[2];
-	int i6 = vertex_indices[4];
+	int i4 = vertex_indices[3];
+	int i6 = vertex_indices[5];
 	for (int i = 0; i < edges.size(); i++)
 	{
 		// cout << "Set new edges entered\n";
@@ -699,25 +682,21 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 		// i1-i4 becomes i2-i4
 		if (edge[0] == i1 && edge[1] == i4)
 		{
-			// cout << "set edge1\n";
 			edges[i][0] = i2;
 		}
 		// i2-i6 becomes i1-i6
-		if (edge[0] == i6 && edge[1] == i2)
+		if (edge[0] == i2 && edge[1] == i6)
 		{
-			// cout << "set edge2\n";
 			edges[i][0] = i1;
 		}
-		// i34i1 becomes i4-i2
+		// i3-i1 becomes i4-i2
 		if (edge[0] == i4 && edge[1] == i1)
 		{
-			// cout << "set edge3\n";
 			edges[i][1] = i2;
 		}
 		// i6-i2 becomes i6-i1
-		if (edge[0] == i6 && edge[1] == i1)
+		if (edge[0] == i6 && edge[1] == i2)
 		{
-			// cout << "set edge4\n";
 			edges[i][1] = i1;
 		}
 	}

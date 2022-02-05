@@ -30,19 +30,21 @@ int main(int argc, char *argv[])
     std::vector<double> L{lx, ly};
 
     double ka = 1; //area force coefficint
-    double A0 = 1; // current preferred area for polygon
-    double eta = 0.1; // drag coefficient
-    double gamma = 0.04 * ka * A0; // hexagonal network
+    double A0 = 0.01; // current preferred area for polygon
+    //double gamma = 0.04 * ka * A0; // hexagonal network
+    double gamma = 1;
     // gamma = 0.1 * ka * A0 // soft network
-    double Lambda = 0.12 * ka * sqrt(pow(A0, 3)); // hexagonal network
+    //double Lambda = 0.12 * ka * sqrt(pow(A0, 3)); // hexagonal network
+    double Lambda = 0.5;
     // Lambda = -0.85 * ka * A0**(3/2) // soft network
     double lmin = 0.1; // cell rearangment treshold
     double ksep = 3.0;
-    double delta_t = 0.01;
-    double xi = 0.2;
+    double delta_t = 0.001; // timestep
+    double xi = 0.2; // motility coefficient
+    double eta = 0.01; // noise scalling coefficient
 
     // maximum Time
-    double T = 1;
+    double T = 0.01;
     double pi = atan(1) * 4;
 
     // open vertices file

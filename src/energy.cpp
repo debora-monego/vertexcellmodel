@@ -9,10 +9,19 @@ using namespace std;
 double get_total_energy(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges, double ka, std::vector<double> L,
                         double Lambda, double gamma)
 {
+    // Elasticity energy: e1 = sum_{J=1 to N} (ka/2) * (AJ - A0)^2
+    // ka: effective modulus of cell (resistance to volume changes)
+    // AJ: area of cell J; A0: preferred area of cell J 
     double e1 = get_energy_elasticity(vertices, network, ka, L);
+    // Adhesion energy: e2 = sum{ij} Lambda * lij
+    // Lambda: adhesion energy/unit length
+    // lij: length of edge between vertex i and j
     double e2 = get_energy_adhesion(vertices, edges, Lambda, L);
     // Take into account double counting of edges
     e2 = e2 / 4;
+    // Contraction energy: e3 = sum_{J=1 to N} (gamma/2) * LJ^2
+    // gamma/2: elastic constant
+    // LJ: perimeter of cell J
     double e3 = get_energy_contraction(vertices, network, gamma, L);
 
     return (e1 + e2 + e3);
