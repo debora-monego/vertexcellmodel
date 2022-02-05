@@ -172,7 +172,7 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0(std::vecto
 	edges_0[8][0] = i5;
 	edges_0[8][1] = i2;
 
-	// Edge 7 : i6 - i2
+	// Edge 9 : i6 - i2
 	edges_0[9][0] = i6;
 	edges_0[9][1] = i2;
 
@@ -419,7 +419,7 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_right(std::v
 	edges_r[8][0] = i5;
 	edges_r[8][1] = i2;
 
-	// Edge 7 : i6 - i1
+	// Edge 9 : i6 - i1
 	edges_r[9][0] = i6;
 	edges_r[9][1] = i1;
 
@@ -546,6 +546,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 
 				// Find 6 indices for vertices involved in the transition
 				std::vector<int> indices = get_vertex_indices(network, i1, i2, cell_ids);
+				cout << "i1 = " << indices[0] << " i2 = " << indices[1] << " i3 = " << indices[2] << " i4 = " << indices[3] << " i5 = " << indices[4] << " i6 = " << indices[5] << '\n';
 
 				// Get original configuration
 				std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0_data = T1_0(network, i1, i2, cell_ids, indices);
@@ -622,22 +623,34 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 		// i1-i3 becomes i2-i3
 		if (edge[0] == i1 && edge[1] == i3)
 		{
+			cout << "i1-i3 becomes i2-i3\n";
+			cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i2;
+			cout << "new = " << edges[i][0] << '\n';
 		}
 		// i2-i5 becomes i1-i5
 		if (edge[0] == i2 && edge[1] == i5)
 		{
+			cout << "i2-i5 becomes i1-i5\n";
+			cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i1;
+			cout << "new = " << edges[i][0] << '\n';
 		}
 		// i3-i1 becomes i3-i2
 		if (edge[0] == i3 && edge[1] == i1)
 		{
+			cout << "i3-i1 becomes i3-i2\n";
+			cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i2;
+			cout << "new = " << edges[i][1] << '\n';
 		}
 		// i5-i2 becomes i5-i1
 		if (edge[0] == i5 && edge[1] == i2)
 		{
+			cout << "i5-i2 becomes i5-i1\n";
+			cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i1;
+			cout << "new = " << edges[i][1] << '\n';
 		}
 	}
 
@@ -682,22 +695,34 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 		// i1-i4 becomes i2-i4
 		if (edge[0] == i1 && edge[1] == i4)
 		{
+			cout << "i1-i4 becomes i2-i4\n";
+			cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i2;
+			cout << "new = " << edges[i][0] << '\n';
 		}
 		// i2-i6 becomes i1-i6
 		if (edge[0] == i2 && edge[1] == i6)
 		{
+			cout << "i2-i6 becomes i1-i6\n";
+			cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i1;
+			cout << "new = " << edges[i][0] << '\n';
 		}
-		// i3-i1 becomes i4-i2
+		// i4-i1 becomes i4-i2
 		if (edge[0] == i4 && edge[1] == i1)
 		{
+			cout << "i4-i1 becomes i4-i2\n";
+			cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i2;
+			cout << "new = " << edges[i][1] << '\n';
 		}
 		// i6-i2 becomes i6-i1
 		if (edge[0] == i6 && edge[1] == i2)
 		{
+			cout << "i6-i2 becomes i6-i1\n";
+			cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i1;
+			cout << "new = " << edges[i][1] << '\n';
 		}
 	}
 
