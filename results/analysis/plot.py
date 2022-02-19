@@ -11,9 +11,8 @@ def periodic_diff(v1, v2, L):
 
 
 def periodic_plot(x1, y1, x2, y2, color):
-
     #L = np.array([lx,ly])
-    L = np.array([1., 1.])
+    L = np.array([10., 10.])
 
     v1 = np.array((x1, y1))
     v2 = np.array((x2, y2))
@@ -64,7 +63,7 @@ def save_plot(outfile):
     frame.axes.get_xaxis().set_ticks([])
     frame.axes.get_yaxis().set_ticks([])
 
-    plt.axis([0, 1, 0, 1])
+    plt.axis([0, 10, 0, 10])
 
     # save and close plot
     plt.savefig(outfile)

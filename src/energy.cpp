@@ -33,6 +33,8 @@ double get_energy_elasticity(std::vector<std::vector<double> > vertices, std::ve
     double e = 0;
     double area = 0;
     double A0 = 0;
+    cout << "vertices = " << vertices.size() << '\n';
+    cout << "network = " << network.size() << '\n';
 
     for (int i = 0; i < network.size(); i++)
     {

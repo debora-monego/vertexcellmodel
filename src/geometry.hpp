@@ -31,7 +31,7 @@ double get_euclidian_distance(double x0, double y0, double x1, double y1);
 
 /* Sets a new separation between two vertices that went through a T1 transition according to the separation ratio ksep
     / returns: vector with new x0 and y0 coordinates */
-std::vector<double> set_separation_transition(double x0, double y0, double x1, double y1, double ksep, double lmin);
+std::vector<double> set_separation_transition(double x0, double y0, double x1, double y1, double ksep, double lmin, double angle);
 
 /* Calculates the position of the center of a polygon
     / data structures: vertices: vector of vectors with the positions of the polygon's vertices

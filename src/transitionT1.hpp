@@ -54,6 +54,8 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 																												   std::vector<std::vector<int> > edges, double lx, double ly, double lmin,
 																												   double ka, double Lambda, double gamma, double ksep);
 
+std::vector<std::vector<double> > set_T1_metastable(int i1, int i2, double lx, double ly, double ksep, std::vector<std::vector<double> > vertices);
+
 // Set new cell indices and edges for T1 left transition
 // std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > set_T1_left(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_l_data, std::vector<int> cell_ids,
 // 																			 std::vector<std::vector<int> > edges, std::vector<int> vertex_indices);

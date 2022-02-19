@@ -20,7 +20,7 @@
 
 using namespace std;
 
-void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, std::vector<Polygon> network,
+void molecular_dynamics(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, std::vector<Polygon> network,
                         double delta_t, double lx, double ly, double T, double ka, double Lambda, double gamma, double eta, double xi, double lmin, double ksep)
 {
 
@@ -39,17 +39,18 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     out_logfile.open("./results/log.txt");
     out_logfile << "TOTAL ENERGY AND FORCE IN THE NETWORK AT EVERY TIME STEP\n";
     out_logfile << "TOTAL TIME STEPS = " << T / delta_t << '\n';
-    out_logfile << "timestep" << std::setw(20) << "f_total" << std::setw(20) << "f_elasticity" << std::setw(20) << "f_contraction" << std::setw(20)
-                << "f_adhesion" << std::setw(20) << "f_motility" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
-                << "e_adhesion" << std::setw(20) << "e_contraction" << '\n';
     // out_logfile << "timestep" << std::setw(20) << "f_total" << std::setw(20) << "f_elasticity" << std::setw(20) << "f_contraction" << std::setw(20)
-    //             << "f_adhesion" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
+    //             << "f_adhesion" << std::setw(20) << "f_motility" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
     //             << "e_adhesion" << std::setw(20) << "e_contraction" << '\n';
+    out_logfile << "timestep" << std::setw(20) << "f_total" << std::setw(20) << "f_elasticity" << std::setw(20) << "f_contraction" << std::setw(20)
+                << "f_adhesion" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
+                << "e_adhesion" << std::setw(20) << "e_contraction" << '\n';
 
     std::vector<double> L{lx, ly};
 
     for (double t = 0; t < T; t = t + delta_t)
     {
+        cout << "timestep = " << t << '\n';
         //////// Get energies for the network ////////
 
         // Get elasticity energy
@@ -64,11 +65,13 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         // Get total energy
         double e_total = get_total_energy(vertices, network, edges, ka, L, Lambda, gamma);
 
+        cout << "e_elast = " << e_elasticity << " e_adh = " << e_adhesion << " e_cont = " << e_contraction << '\n';
+
         //////// Get forces for network ////////
 
         // Get elasticity force
         // Initialize forces for every vertex
-        std::vector<std::vector<double> > f_elasticity(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> f_elasticity(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(f_elasticity[i].begin(), f_elasticity[i].end(), 0);
@@ -76,7 +79,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
         f_elasticity = calc_force_elasticity(vertices, network, ka, L);
 
-        std::vector<std::vector<double> > abs_f_elasticity(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> abs_f_elasticity(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(abs_f_elasticity[i].begin(), abs_f_elasticity[i].end(), 0);
@@ -96,7 +99,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         double f_elasticity_total = std::accumulate(f_elasticity_sum.begin(), f_elasticity_sum.end(), 0.0);
 
         // Get contraction force
-        std::vector<std::vector<double> > f_contraction(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> f_contraction(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(f_contraction[i].begin(), f_contraction[i].end(), 0);
@@ -104,7 +107,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
         f_contraction = calc_force_contraction(vertices, network, gamma, L);
 
-        std::vector<std::vector<double> > abs_f_contraction(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> abs_f_contraction(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(abs_f_contraction[i].begin(), abs_f_contraction[i].end(), 0);
@@ -124,7 +127,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         double f_contraction_total = std::accumulate(f_contraction_sum.begin(), f_contraction_sum.end(), 0.0);
 
         // Get adhesion force
-        std::vector<std::vector<double> > f_adhesion(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> f_adhesion(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(f_adhesion[i].begin(), f_adhesion[i].end(), 0);
@@ -132,7 +135,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
         f_adhesion = calc_force_adhesion(vertices, edges, Lambda, L);
 
-        std::vector<std::vector<double> > abs_f_adhesion(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> abs_f_adhesion(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(abs_f_adhesion[i].begin(), abs_f_adhesion[i].end(), 0);
@@ -152,7 +155,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         double f_adhesion_total = std::accumulate(f_adhesion_sum.begin(), f_adhesion_sum.end(), 0.0);
 
         // Get motility force
-        std::vector<std::vector<double> > f_motility(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> f_motility(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(f_motility[i].begin(), f_motility[i].end(), 0);
@@ -160,7 +163,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
         f_motility = calc_force_motility(vertices, network, eta, xi);
 
-        std::vector<std::vector<double> > abs_f_motility(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> abs_f_motility(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(abs_f_motility[i].begin(), abs_f_motility[i].end(), 0);
@@ -181,7 +184,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
         // Get total force
         // Initialize forces for every vertex
-        std::vector<std::vector<double> > forces(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(forces[i].begin(), forces[i].end(), 0);
@@ -189,7 +192,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
         forces = get_forces(vertices, network, edges, lx, ly, ka, Lambda, gamma, eta, xi);
 
-        std::vector<std::vector<double> > abs_forces(vertices.size(), std::vector<double>(2));
+        std::vector<std::vector<double>> abs_forces(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
         {
             std::fill(abs_forces[i].begin(), abs_forces[i].end(), 0);
@@ -209,40 +212,56 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         double f_total = std::accumulate(f_sum.begin(), f_sum.end(), 0.0);
 
         // Print results for every time step in output file
-        out_logfile << t << std::setw(20) << f_total << std::setw(20) << f_elasticity_total << std::setw(20) << f_contraction_total << std::setw(20)
-                    << f_adhesion_total << std::setw(20) << f_motility_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
-                    << e_adhesion << std::setw(20) << e_contraction << '\n';
         // out_logfile << t << std::setw(20) << f_total << std::setw(20) << f_elasticity_total << std::setw(20) << f_contraction_total << std::setw(20)
-        //             << f_adhesion_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
+        //             << f_adhesion_total << std::setw(20) << f_motility_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
         //             << e_adhesion << std::setw(20) << e_contraction << '\n';
+        out_logfile << t << std::setw(20) << f_total << std::setw(20) << f_elasticity_total << std::setw(20) << f_contraction_total << std::setw(20)
+                    << f_adhesion_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
+                    << e_adhesion << std::setw(20) << e_contraction << '\n';
 
         // Move vertices
         vertices = move_vertices(vertices, forces, lx, ly, delta_t, lmin);
-        out_vertexfile << "timestep = " << t << '\n';
-        out_vertexfile << "vx" << std::setw(10) << "vy" << '\n';
 
         // Check for T1 transitions
-        std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data = T1_transition(vertices, network, edges, lx, ly, lmin, ka, Lambda, gamma, ksep);
+        std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data = T1_transition(vertices, network, edges, lx, ly, lmin, ka, Lambda, gamma, ksep);
         network = std::get<0>(T1_data);
+        cout << "network print T1 = " << network.size() << '\n';
         edges = std::get<1>(T1_data);
         vertices = std::get<2>(T1_data);
+
+        // Print coordinates and connections for each timestep
         out_edgefile << "timestep = " << t << '\n';
-        out_edgefile << "edge1" << std::setw(10) << "edge2" << '\n';
+        out_edgefile << "edge1" << '\t' << "edge2" << '\n';
         for (std::vector<int> i : edges)
         {
             for (int j : i)
             {
-                out_edgefile << j << std::setw(10);
+                out_edgefile << j << '\t';
             }
             out_edgefile << '\n';
         }
+
+        out_vertexfile << "timestep = " << t << '\n';
+        out_vertexfile << "vx" << '\t' << "vy" << '\n';
         for (std::vector<double> i : vertices)
         {
             for (double j : i)
             {
-                out_vertexfile << j << std::setw(10);
+                out_vertexfile << j << '\t';
             }
             out_vertexfile << '\n';
+        }
+
+        out_cellfile << "timestep = " << t << '\n';
+        for (int i = 0; i < network.size(); i++)
+        {
+            Polygon cell = network[i];
+            for (int j : cell.indices)
+            {
+                out_cellfile << j << '\t';
+            }
+            out_cellfile << '\n';
+            //cout << "printed\n";
         }
     }
 
@@ -276,7 +295,12 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
     ofile.close();
     auxfile.close();
-    // std::filesystem::remove(auxfile);
+
+    // Delete aux file
+    if (remove("log_aux.txt") != 0)
+        perror("Error deleting transitions aux file");
+    else
+        puts("Transitions aux file successfully deleted");
 
     // Print final configuration information: vertex coordinates
     ofstream final_vertex;
@@ -343,10 +367,4 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     }
 
     final_network.close();
-
-    // Delete aux file
-    if (remove("log_aux.txt") != 0)
-        perror("Error deleting transitions aux file");
-    else
-        puts("Transitions aux file successfully deleted");
 }

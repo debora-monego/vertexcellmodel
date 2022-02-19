@@ -21,19 +21,10 @@ std::vector<int> get_vertex_indices(std::vector<Polygon> network, int i1, int i2
 	}
 
 	// Define polygons
-	// Polygon cell_0 = network_copy[cell_ids[0]];
-	// Polygon cell_1 = network_copy[cell_ids[1]];
-	// Polygon cell_2 = network_copy[cell_ids[2]];
-	// Polygon cell_3 = network_copy[cell_ids[3]];
 	Polygon cell_0 = network_copy[0];
 	Polygon cell_1 = network_copy[1];
 	Polygon cell_2 = network_copy[2];
 	Polygon cell_3 = network_copy[3];
-
-	// cout << cell_0.indices[0] << '\n'
-	// 	 << cell_1.indices[0] << '\n'
-	// 	 << cell_2.indices[0] << '\n'
-	// 	 << cell_3.indices[0] << '\n';
 
 	// Find indices with respect to cell 1
 	int position;
@@ -101,7 +92,7 @@ std::vector<int> get_vertex_indices(std::vector<Polygon> network, int i1, int i2
 }
 
 // Get polygons and edges associated with short bond length
-std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices)
+std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_0(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices)
 {
 
 	// Make a copy of polygons
@@ -112,10 +103,6 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0(std::vecto
 	}
 
 	// Define polygons
-	// Polygon cell_0 = network_0[cell_ids[0]];
-	// Polygon cell_1 = network_0[cell_ids[1]];
-	// Polygon cell_2 = network_0[cell_ids[2]];
-	// Polygon cell_3 = network_0[cell_ids[3]];
 	Polygon cell_0 = network_0[0];
 	Polygon cell_1 = network_0[1];
 	Polygon cell_2 = network_0[2];
@@ -130,7 +117,7 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0(std::vecto
 
 	// Initialize matrix of edges
 	// std::vector<std::vector<int> > edges_0(edges);
-	std::vector<std::vector<int> > edges_0(10, std::vector<int>(2, 0));
+	std::vector<std::vector<int>> edges_0(10, std::vector<int>(2, 0));
 	/*for (int i = 0; i < 10; i++)
 	{
 		std::fill(edges_0[i].begin(), edges_0[i].end(), 0);
@@ -176,13 +163,13 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0(std::vecto
 	edges_0[9][0] = i6;
 	edges_0[9][1] = i2;
 
-	std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0_data(network_0, edges_0);
+	std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_0_data(network_0, edges_0);
 
 	return T1_0_data;
 }
 
 // Get cells and edges associated with left side
-std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_left(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices)
+std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_left(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices)
 {
 
 	// Make a copy of polygons
@@ -193,10 +180,6 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_left(std::ve
 	}
 
 	// Define polygons
-	// Polygon cell_0 = network_l[cell_ids[0]];
-	// Polygon cell_1 = network_l[cell_ids[1]];
-	// Polygon cell_2 = network_l[cell_ids[2]];
-	// Polygon cell_3 = network_l[cell_ids[3]];
 	Polygon cell_0 = network_l[0];
 	Polygon cell_1 = network_l[1];
 	Polygon cell_2 = network_l[2];
@@ -256,7 +239,7 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_left(std::ve
 
 	// Edges
 	// Initialize matrix of edges
-	std::vector<std::vector<int> > edges_l(10, std::vector<int>(2, 0));
+	std::vector<std::vector<int>> edges_l(10, std::vector<int>(2, 0));
 	/*for (int i = 0; i < 10; i++)
 	{
 		std::fill(edges_l[i].begin(), edges_l[i].end(), 0);
@@ -302,13 +285,13 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_left(std::ve
 	edges_l[9][0] = i6;
 	edges_l[9][1] = i2;
 
-	std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_l_data(network_l, edges_l);
+	std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_l_data(network_l, edges_l);
 
 	return T1_l_data;
 }
 
 // Get cells and edges associated with right side
-std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_right(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices)
+std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_right(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices)
 {
 
 	// Make a copy of polygons
@@ -377,7 +360,7 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_right(std::v
 
 	// Edges
 	// Initialize matrix of edges
-	std::vector<std::vector<int> > edges_r(10, std::vector<int>(2, 0));
+	std::vector<std::vector<int>> edges_r(10, std::vector<int>(2, 0));
 	/*for (int i = 0; i < 10; i++)
 	{
 		std::fill(edges_r[i].begin(), edges_r[i].end(), 0);
@@ -423,7 +406,7 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_right(std::v
 	edges_r[9][0] = i6;
 	edges_r[9][1] = i1;
 
-	std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_r_data(network_r, edges_r);
+	std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_r_data(network_r, edges_r);
 
 	return T1_r_data;
 }
@@ -491,18 +474,14 @@ std::vector<int> get_4_cells(std::vector<Polygon> network, int i1, int i2)
 			cell_ids[1] = i;
 		}
 	}
-	// for (int i = 0; i < cell_ids.size(); i++)
-	// {
-	// 	cout << cell_ids[i] << '\n';
-	// }
-	// cout << "i1 = " << i1 << " i2 =" << i2 << "\n";
+
 	return cell_ids;
 }
 
 // Perform T1 transition and check the energy change
-std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_transition(std::vector<std::vector<double> > vertices, std::vector<Polygon> network,
-																												   std::vector<std::vector<int> > edges, double lx, double ly, double lmin,
-																												   double ka, double Lambda, double gamma, double ksep)
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_transition(std::vector<std::vector<double>> vertices, std::vector<Polygon> network,
+																												std::vector<std::vector<int>> edges, double lx, double ly, double lmin,
+																												double ka, double Lambda, double gamma, double ksep)
 {
 	ofstream aux_logfile;
 	aux_logfile.open("log_aux.txt", std::ios_base::app);
@@ -510,8 +489,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	std::vector<double> L{lx, ly};
 	std::vector<int> reverse;
 
-	// std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data(network, edges, vertices);
-	std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data; //(network, edges, vertices);
+	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data;
 
 	for (int i = 0; i < edges.size(); i++)
 	{
@@ -530,8 +508,12 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 		if ((dist < lmin) && (it == reverse.end()))
 		{
 			// cout << "entrou 1 if\n";
-			aux_logfile << "T1" << std::setw(20) << i1 << std::setw(20) << i2 << std::setw(30) << dist << '\n';
 			std::vector<int> cell_ids = get_4_cells(network, i1, i2);
+			for (int i : cell_ids)
+			{
+				cout << i << ' ';
+			}
+			cout << '\n';
 			std::vector<int>::iterator itr;
 			itr = std::find(cell_ids.begin(), cell_ids.end(), -1);
 			if (itr != cell_ids.end())
@@ -546,24 +528,24 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 
 				// Find 6 indices for vertices involved in the transition
 				std::vector<int> indices = get_vertex_indices(network, i1, i2, cell_ids);
-				cout << "i1 = " << indices[0] << " i2 = " << indices[1] << " i3 = " << indices[2] << " i4 = " << indices[3] << " i5 = " << indices[4] << " i6 = " << indices[5] << '\n';
+				// cout << "i1 = " << indices[0] << " i2 = " << indices[1] << " i3 = " << indices[2] << " i4 = " << indices[3] << " i5 = " << indices[4] << " i6 = " << indices[5] << '\n';
 
 				// Get original configuration
-				std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0_data = T1_0(network, i1, i2, cell_ids, indices);
+				std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_0_data = T1_0(network, i1, i2, cell_ids, indices);
 				std::vector<Polygon> network_0 = T1_0_data.first;
-				std::vector<std::vector<int> > edges_0 = T1_0_data.second;
+				std::vector<std::vector<int>> edges_0 = T1_0_data.second;
 				double E0 = get_total_energy(vertices, network_0, edges_0, ka, L, Lambda, gamma);
 
 				// Get left T1 transition
-				std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_l_data = T1_left(network, i1, i2, cell_ids, indices);
+				std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_l_data = T1_left(network, i1, i2, cell_ids, indices);
 				std::vector<Polygon> network_l = T1_l_data.first;
-				std::vector<std::vector<int> > edges_l = T1_l_data.second;
+				std::vector<std::vector<int>> edges_l = T1_l_data.second;
 				double E_left = get_total_energy(vertices, network_l, edges_l, ka, L, Lambda, gamma);
 
 				// Get right T1 transition
-				std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_r_data = T1_right(network, i1, i2, cell_ids, indices);
+				std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_r_data = T1_right(network, i1, i2, cell_ids, indices);
 				std::vector<Polygon> network_r = T1_r_data.first;
-				std::vector<std::vector<int> > edges_r = T1_r_data.second;
+				std::vector<std::vector<int>> edges_r = T1_r_data.second;
 				double E_right = get_total_energy(vertices, network_r, edges_r, ka, L, Lambda, gamma);
 
 				std::vector<double> all_energies{E0, E_left, E_right};
@@ -582,15 +564,26 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 				// Same configuration -> do nothing
 				if (min_index == 0)
 				{
-					// cout << "same configuration\n";
+					std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data(network, edges, vertices);
 				}
 				else if (min_index == 1)
 				{
+					// vertices = set_T1_metastable(i1, i2, lx, ly, ksep, vertices);
 					T1_data = set_T1_left(network, T1_l_data, cell_ids, edges, indices, lx, ly, lmin, ksep, vertices);
+					aux_logfile << "T1" << std::setw(20) << i1 << std::setw(20) << i2 << std::setw(30) << dist << '\n';
+					cout << "network T1 transtion done = " << network.size() << "\n";
+					// std::vector<int> new_cell_ids = get_4_cells(network, i1, i2);
+					// for (int i : new_cell_ids){
+					// 	cout << i << ' ';
+					// }
+					// cout << '\n';
 				}
 				else
 				{
+					// vertices = set_T1_metastable(i1, i2, lx, ly, ksep, vertices);
 					T1_data = set_T1_right(network, T1_r_data, cell_ids, edges, indices, lx, ly, lmin, ksep, vertices);
+					aux_logfile << "T1" << std::setw(20) << i1 << std::setw(20) << i2 << std::setw(30) << dist << '\n';
+					cout << "network T1 transtion done = " << network.size() << "\n";
 				}
 			}
 		}
@@ -598,10 +591,27 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	return T1_data;
 }
 
+// Set new vertex position metastable state in which vertex[i1] = vertex[i2]
+std::vector<std::vector<double>> set_T1_metastable(int i1, int i2, double lx, double ly, double ksep, std::vector<std::vector<double>> vertices)
+{
+	std::vector<double> L{lx, ly};
+
+	std::vector<double> v1 = vertices[i1];
+	std::vector<double> vertex2 = vertices[i2];
+	std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L));
+
+	vertices[i1][0] = (v1[0] + v2[0]) / 2;
+	vertices[i1][1] = (v1[1] + v2[1]) / 2;
+	vertices[i2][0] = vertices[i1][0];
+	vertices[i2][1] = vertices[i1][1];
+
+	return vertices;
+}
+
 // Set new cell indices, vertex positions, and edges for T1 left transition
-std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > set_T1_left(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_l_data,
-																												 std::vector<int> cell_ids, std::vector<std::vector<int> > edges, std::vector<int> vertex_indices, double lx, double ly,
-																												 double lmin, double ksep, std::vector<std::vector<double> > vertices)
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> set_T1_left(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_l_data,
+																											  std::vector<int> cell_ids, std::vector<std::vector<int>> edges, std::vector<int> vertex_indices, double lx, double ly,
+																											  double lmin, double ksep, std::vector<std::vector<double>> vertices)
 {
 	std::vector<Polygon> network_l = T1_l_data.first;
 
@@ -623,56 +633,62 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 		// i1-i3 becomes i2-i3
 		if (edge[0] == i1 && edge[1] == i3)
 		{
-			cout << "i1-i3 becomes i2-i3\n";
-			cout << "original = " << edges[i][0] << '\n';
+			// cout << "i1-i3 becomes i2-i3\n";
+			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i2;
-			cout << "new = " << edges[i][0] << '\n';
+			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i2-i5 becomes i1-i5
 		if (edge[0] == i2 && edge[1] == i5)
 		{
-			cout << "i2-i5 becomes i1-i5\n";
-			cout << "original = " << edges[i][0] << '\n';
+			// cout << "i2-i5 becomes i1-i5\n";
+			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i1;
-			cout << "new = " << edges[i][0] << '\n';
+			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i3-i1 becomes i3-i2
 		if (edge[0] == i3 && edge[1] == i1)
 		{
-			cout << "i3-i1 becomes i3-i2\n";
-			cout << "original = " << edges[i][1] << '\n';
+			// cout << "i3-i1 becomes i3-i2\n";
+			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i2;
-			cout << "new = " << edges[i][1] << '\n';
+			// cout << "new = " << edges[i][1] << '\n';
 		}
 		// i5-i2 becomes i5-i1
 		if (edge[0] == i5 && edge[1] == i2)
 		{
-			cout << "i5-i2 becomes i5-i1\n";
-			cout << "original = " << edges[i][1] << '\n';
+			// cout << "i5-i2 becomes i5-i1\n";
+			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i1;
-			cout << "new = " << edges[i][1] << '\n';
+			// cout << "new = " << edges[i][1] << '\n';
 		}
 	}
 
 	std::vector<double> L{lx, ly};
+	double pi = atan(1) * 4;
+	double angle = -pi / 2;
 
 	std::vector<double> v1 = vertices[i1];
 	std::vector<double> vertex2 = vertices[i2];
 	std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L));
 
 	// Set new vertices positions so that i1 and i2 are separated by ksep * lmin
-	std::vector<double> move_v1_transition = set_separation_transition(v1[0], v1[1], v2[0], v2[1], ksep, lmin);
-	vertices[i1][0] = move_v1_transition[0];
-	vertices[i1][1] = move_v1_transition[1];
+	std::vector<double> move_transition = set_separation_transition(v1[0], v1[1], v2[0], v2[1], ksep, lmin, angle);
+	vertices[i1][0] = move_transition[0];
+	vertices[i1][1] = move_transition[1];
+	vertices[i2][0] = move_transition[2];
+	vertices[i2][1] = move_transition[3];
 
-	std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_left_data(network, edges, vertices);
+	cout << "network T1 transtion = " << network.size() << "\n";
+
+	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_left_data(network, edges, vertices);
 	return T1_left_data;
 }
 
 // Set new cell indices and edges for T1 right transition
-std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > set_T1_right(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_r_data, std::vector<int> cell_ids,
-																												  std::vector<std::vector<int> > edges, std::vector<int> vertex_indices, double lx, double ly,
-																												  double lmin, double ksep, std::vector<std::vector<double> > vertices)
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> set_T1_right(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_r_data, std::vector<int> cell_ids,
+																											   std::vector<std::vector<int>> edges, std::vector<int> vertex_indices, double lx, double ly,
+																											   double lmin, double ksep, std::vector<std::vector<double>> vertices)
 {
 	std::vector<Polygon> network_r = T1_r_data.first;
 
@@ -695,48 +711,139 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 		// i1-i4 becomes i2-i4
 		if (edge[0] == i1 && edge[1] == i4)
 		{
-			cout << "i1-i4 becomes i2-i4\n";
-			cout << "original = " << edges[i][0] << '\n';
+			// cout << "i1-i4 becomes i2-i4\n";
+			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i2;
-			cout << "new = " << edges[i][0] << '\n';
+			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i2-i6 becomes i1-i6
 		if (edge[0] == i2 && edge[1] == i6)
 		{
-			cout << "i2-i6 becomes i1-i6\n";
-			cout << "original = " << edges[i][0] << '\n';
+			// cout << "i2-i6 becomes i1-i6\n";
+			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i1;
-			cout << "new = " << edges[i][0] << '\n';
+			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i4-i1 becomes i4-i2
 		if (edge[0] == i4 && edge[1] == i1)
 		{
-			cout << "i4-i1 becomes i4-i2\n";
-			cout << "original = " << edges[i][1] << '\n';
+			// cout << "i4-i1 becomes i4-i2\n";
+			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i2;
-			cout << "new = " << edges[i][1] << '\n';
+			// cout << "new = " << edges[i][1] << '\n';
 		}
 		// i6-i2 becomes i6-i1
 		if (edge[0] == i6 && edge[1] == i2)
 		{
-			cout << "i6-i2 becomes i6-i1\n";
-			cout << "original = " << edges[i][1] << '\n';
+			// cout << "i6-i2 becomes i6-i1\n";
+			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i1;
-			cout << "new = " << edges[i][1] << '\n';
+			// cout << "new = " << edges[i][1] << '\n';
 		}
 	}
 
 	std::vector<double> L{lx, ly};
+	double pi = atan(1) * 4;
+	double angle = pi / 2;
 
 	std::vector<double> v1 = vertices[i1];
 	std::vector<double> vertex2 = vertices[i2];
 	std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L));
 
 	// Set new vertices
-	std::vector<double> move_v1_transition = set_separation_transition(v1[0], v1[1], v2[0], v2[1], ksep, lmin);
-	vertices[i1][0] = move_v1_transition[0];
-	vertices[i1][1] = move_v1_transition[1];
+	std::vector<double> move_transition = set_separation_transition(v1[0], v1[1], v2[0], v2[1], ksep, lmin, angle);
+	vertices[i1][0] = move_transition[0];
+	vertices[i1][1] = move_transition[1];
+	vertices[i2][0] = move_transition[2];
+	vertices[i2][1] = move_transition[3];
 
-	std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_right_data(network, edges, vertices);
+	cout << "network T1 transtion = " << network.size() << "\n";
+
+	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_right_data(network, edges, vertices);
 	return T1_right_data;
 }
+
+// // // Function that checks for intersecting or overlapping elements
+// // void Check_For_Intersections()
+// // {
+// 	use -> find vertice dentro polygon
+// // 	// First neighbours are elements that contain the node.  Second neighbours are elements that share a cell-cell boundary with first
+// // 	// neighbours, but do not contain the node.  Nodes can only intersect second neighbours.
+
+// // }
+
+// // Function that checks for small triangles created after a T1 transiton
+// std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T2_transition(std::vector<Polygon> network, std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Amin, double lx, double ly)
+// {
+// 	std::vector<double> L{lx, ly};
+// 	std::vector<double> center;
+// 	std::vector<double> area;
+// 	for (int i = 0; i < network.indices.size(); i++)
+// 	{
+// 		Polygon cell = network[i];
+// 		area = cell.get_polygon_area(vertices, L);
+// 		if (cell.size() == 3 && area < Amin)
+// 		{
+// 			center = cell.get_polygon_center(vertices, L);
+
+// 			std::vector<int> cell_ind = cell.indices; //  5 4 1 -> 0 1 2 3 4 5 6 7
+// 			vertices[cell_ind[0]] = center;
+// 			vertices[cell_ind[1]] deletado;
+// 			for (polygon in polygons){
+// 				if (polygon.index > cell_ind[1]){
+// 					polygon.index - 1
+// 				}
+// 			}
+// 			same for edges
+// 			and same vertices[cell_ind[2]] delete;
+
+// 			int new_vertex_index = cell_ind[0];
+
+// 			for (int j = 0; j < network.indices.size(); j++)
+// 			{
+// 				Polygon cell_neigh = network[j];
+// 				// FIXME ultimo element
+// 				for (int k = 0; k < (cell_neigh.indices.size() - 1); k++)
+// 				{
+// 					if (cell_ind[1] == cell_neigh.indices[k])
+// 					{
+// 						if (cell_ind[0] == cell_neigh.indices[k + 1])
+// 						{
+// 							cell_neigh.indices[k] = new_edge;
+// 							// apagar o outro
+// 						}
+// 					}
+// 				}
+// 				network[j] = cell_neigh;
+// 			}
+// 		}
+// 	}
+// }
+// }
+
+// std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T2_data(network, edges, vertices);
+// return T2_data;
+// }
+
+// cell __FILE__ 0 1 2 3 4 5 6 7
+
+// 	new n 3 4 5 6 7 n
+// 		n
+
+// 			edge __FILE__ 0 1 1 0 1 2 2 1 2 0
+
+// 	n 3x
+
+// 	vertex __FILE__
+// 		x0 y0
+// 			x1 y1
+// 				x2 y2
+
+// 					n0 n0
+
+// 						std::vector<int>::iterator it2;
+// it1 = std::find(cell.indices.begin(), cell.indices.end(), i1);
+// it2 = std::find(cell.indices.begin(), cell.indices.end(), i2);
+// // cout << "entrou no for 1\n";
+
+// if ((it1 != cell.indices.end()) && (it2 != cell.indices.end()))

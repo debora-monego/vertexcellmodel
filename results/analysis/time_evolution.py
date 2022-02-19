@@ -75,8 +75,7 @@ skip = 1000
 sim_array = []
 
 print(os.path.dirname('.'))
-data_path = 'E:/Alex/Potts Simulations/Potts Model/Sorting Simulations/100k MCS/157+10A/Round Cells/Old J/1/output'
-# data_path = join("C:/", "Users/", "Microscope PC/", "Documents/", "Lucas/", "2Types (original)_468-10A/", "output/")
+data_path = '../.'
 
 def main():
     read_args()
@@ -100,6 +99,7 @@ def read_lattice_files():
     ints_in_filenames = [[int(s) for s in str(f).split("_") if s.isdigit()] for f in filesInDirectory]
     step_to_file = [[ints_in_filenames[i], filesInDirectory[i]] for i in range(len(filesInDirectory))]
 
+    
     # filesInDirectory.sort()
     step_to_file.sort()
 
