@@ -39,12 +39,12 @@ void molecular_dynamics(std::vector<std::vector<double>> vertices, std::vector<s
     out_logfile.open("./results/log.txt");
     out_logfile << "TOTAL ENERGY AND FORCE IN THE NETWORK AT EVERY TIME STEP\n";
     out_logfile << "TOTAL TIME STEPS = " << T / delta_t << '\n';
-    // out_logfile << "timestep" << std::setw(20) << "f_total" << std::setw(20) << "f_elasticity" << std::setw(20) << "f_contraction" << std::setw(20)
-    //             << "f_adhesion" << std::setw(20) << "f_motility" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
-    //             << "e_adhesion" << std::setw(20) << "e_contraction" << '\n';
-    out_logfile << "timestep" << std::setw(20) << "f_total" << std::setw(20) << "f_elasticity" << std::setw(20) << "f_contraction" << std::setw(20)
-                << "f_adhesion" << std::setw(20) << "e_total" << std::setw(20) << "e_elasticity" << std::setw(20)
-                << "e_adhesion" << std::setw(20) << "e_contraction" << '\n';
+    // out_logfile << "timestep" << '\t' << "f_total" << '\t' << "f_elasticity" << '\t' << "f_contraction" << '\t'
+    //             << "f_adhesion" << '\t' << "f_motility" << '\t ' << "e_total" << '\t' << "e_elasticity" << '\t'
+    //             << "e_adhesion" << '\t' << "e_contraction" << '\n';
+    out_logfile << "timestep" << '\t' << "f_total" << '\t' << "f_elasticity" << '\t' << "f_contraction" << '\t'
+                << "f_adhesion" << '\t' << "e_total" << '\t' << "e_elasticity" << '\t'
+                << "e_adhesion" << '\t' << "e_contraction" << '\n';
 
     std::vector<double> L{lx, ly};
 
@@ -209,12 +209,12 @@ void molecular_dynamics(std::vector<std::vector<double>> vertices, std::vector<s
         double f_total = std::accumulate(f_sum.begin(), f_sum.end(), 0.0);
 
         // Print results for every time step in output file
-        // out_logfile << t << std::setw(20) << f_total << std::setw(20) << f_elasticity_total << std::setw(20) << f_contraction_total << std::setw(20)
-        //             << f_adhesion_total << std::setw(20) << f_motility_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
-        //             << e_adhesion << std::setw(20) << e_contraction << '\n';
-        out_logfile << t << std::setw(20) << f_total << std::setw(20) << f_elasticity_total << std::setw(20) << f_contraction_total << std::setw(20)
-                    << f_adhesion_total << std::setw(20) << e_total << std::setw(20) << e_elasticity << std::setw(20)
-                    << e_adhesion << std::setw(20) << e_contraction << '\n';
+        // out_logfile << t << '\t' << f_total << '\t' << f_elasticity_total << '\t' << f_contraction_total << '\t'
+        //             << f_adhesion_total << '\t' << f_motility_total << '\t' << e_total << '\t' << e_elasticity << '\t'
+        //             << e_adhesion << '\t' << e_contraction << '\n';
+        out_logfile << t << '\t' << f_total << '\t' << f_elasticity_total << '\t' << f_contraction_total << '\t'
+                    << f_adhesion_total << '\t' << e_total << '\t' << e_elasticity << '\t'
+                    << e_adhesion << '\t' << e_contraction << '\n';
 
         // Move vertices
         vertices = move_vertices(vertices, forces, lx, ly, delta_t, lmin);
@@ -283,7 +283,7 @@ void molecular_dynamics(std::vector<std::vector<double>> vertices, std::vector<s
     {
         ofile << "\n\n";
         ofile << "List of the T1 transitions\n";
-        ofile << "T" << std::setw(20) << "v_id1" << std::setw(20) << "v_id2" << std::setw(20) << "e_length\n";
+        ofile << "T" << '\t' << "v_id1" << '\t' << "v_id2" << '\t' << "e_length\n";
         ofile << ifile.rdbuf();
         // then add more lines to the file if need be...
     }
