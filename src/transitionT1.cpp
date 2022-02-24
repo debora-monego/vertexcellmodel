@@ -567,13 +567,13 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 				{
 					// vertices = set_T1_metastable(i1, i2, lx, ly, ksep, vertices);
 					T1_data = set_T1_left(network, T1_l_data, cell_ids, edges, indices, lx, ly, lmin, ksep, vertices);
-					aux_logfile << "T1" << '\t' << i1 << '\t' << i2 << std::setw(30) << dist << '\n';
+					aux_logfile << "T1" << '\t' << i1 << '\t' << i2 << '\t' << dist << '\n';
 				}
 				else
 				{
 					// vertices = set_T1_metastable(i1, i2, lx, ly, ksep, vertices);
 					T1_data = set_T1_right(network, T1_r_data, cell_ids, edges, indices, lx, ly, lmin, ksep, vertices);
-					aux_logfile << "T1" << '\t' << i1 << '\t' << i2 << std::setw(30) << dist << '\n';
+					aux_logfile << "T1" << '\t' << i1 << '\t' << i2 << '\t' << dist << '\n';
 				}
 			}
 		}
