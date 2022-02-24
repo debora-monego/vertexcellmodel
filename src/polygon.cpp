@@ -14,7 +14,7 @@ std::vector<std::vector<double> > Polygon::get_polygon_vertices(std::vector<std:
     std::vector<std::vector<double> > polygon_vertices;
 
     // align everything to previous vertex
-    double x0 = vertices[indices[0]][0];
+    double x0 = vertices[indices[0]][0]; 
     double y0 = vertices[indices[0]][1];
     //double z0 = vertices[0][2];
 

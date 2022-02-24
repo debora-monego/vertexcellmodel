@@ -112,7 +112,6 @@ std::vector<double> set_separation_transition(double x0, double y0, double x1, d
     double original_separation = get_euclidian_distance(x0, y0, x1, y1);
     double new_separation = lmin * ksep;
     double m = new_separation / original_separation;
-    cout << new_separation << '\n';
 
     std::vector<double> midpoint(2, 0);
     midpoint[0] = (x0 + x1) / 2;

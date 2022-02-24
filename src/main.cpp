@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     double eta = 0.1;         // noise scalling coefficient
 
     // maximum Time
-    double T = 0.4;
+    double T = 700;
     double pi = atan(1) * 4;
 
     // open vertices file

@@ -50,7 +50,6 @@ void molecular_dynamics(std::vector<std::vector<double>> vertices, std::vector<s
 
     for (double t = 0; t < T; t = t + delta_t)
     {
-        cout << "timestep = " << t << '\n';
         //////// Get energies for the network ////////
 
         // Get elasticity energy
@@ -64,8 +63,6 @@ void molecular_dynamics(std::vector<std::vector<double>> vertices, std::vector<s
 
         // Get total energy
         double e_total = get_total_energy(vertices, network, edges, ka, L, Lambda, gamma);
-
-        cout << "e_elast = " << e_elasticity << " e_adh = " << e_adhesion << " e_cont = " << e_contraction << '\n';
 
         //////// Get forces for network ////////
 
@@ -221,11 +218,9 @@ void molecular_dynamics(std::vector<std::vector<double>> vertices, std::vector<s
 
         // Move vertices
         vertices = move_vertices(vertices, forces, lx, ly, delta_t, lmin);
-
         // Check for T1 transitions
         std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data = T1_transition(vertices, network, edges, lx, ly, lmin, ka, Lambda, gamma, ksep);
         network = std::get<0>(T1_data);
-        cout << "network print T1 = " << network.size() << '\n';
         edges = std::get<1>(T1_data);
         vertices = std::get<2>(T1_data);
 

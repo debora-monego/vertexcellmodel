@@ -490,6 +490,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 	std::vector<int> reverse;
 
 	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data;
+	std::vector<Polygon> net_tuple = std::get<0>(T1_data);
 
 	for (int i = 0; i < edges.size(); i++)
 	{
@@ -507,13 +508,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 		auto it = std::search(reverse.begin(), reverse.end(), subs.begin(), subs.end());
 		if ((dist < lmin) && (it == reverse.end()))
 		{
-			// cout << "entrou 1 if\n";
 			std::vector<int> cell_ids = get_4_cells(network, i1, i2);
-			for (int i : cell_ids)
-			{
-				cout << i << ' ';
-			}
-			cout << '\n';
 			std::vector<int>::iterator itr;
 			itr = std::find(cell_ids.begin(), cell_ids.end(), -1);
 			if (itr != cell_ids.end())
@@ -558,32 +553,27 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 				if (itd != all_energies.end())
 				{
 					min_index = std::distance(all_energies.begin(), itd);
+					// cout << "min_index = " << min_index << '\n';
 				}
 
 				// What to do?
 				// Same configuration -> do nothing
 				if (min_index == 0)
 				{
-					std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data(network, edges, vertices);
+					//std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data(network, edges, vertices);
+					T1_data = set_tuple_data(network, edges, vertices);
 				}
 				else if (min_index == 1)
 				{
 					// vertices = set_T1_metastable(i1, i2, lx, ly, ksep, vertices);
 					T1_data = set_T1_left(network, T1_l_data, cell_ids, edges, indices, lx, ly, lmin, ksep, vertices);
 					aux_logfile << "T1" << std::setw(20) << i1 << std::setw(20) << i2 << std::setw(30) << dist << '\n';
-					cout << "network T1 transtion done = " << network.size() << "\n";
-					// std::vector<int> new_cell_ids = get_4_cells(network, i1, i2);
-					// for (int i : new_cell_ids){
-					// 	cout << i << ' ';
-					// }
-					// cout << '\n';
 				}
 				else
 				{
 					// vertices = set_T1_metastable(i1, i2, lx, ly, ksep, vertices);
 					T1_data = set_T1_right(network, T1_r_data, cell_ids, edges, indices, lx, ly, lmin, ksep, vertices);
 					aux_logfile << "T1" << std::setw(20) << i1 << std::setw(20) << i2 << std::setw(30) << dist << '\n';
-					cout << "network T1 transtion done = " << network.size() << "\n";
 				}
 			}
 		}
@@ -606,6 +596,11 @@ std::vector<std::vector<double>> set_T1_metastable(int i1, int i2, double lx, do
 	vertices[i2][1] = vertices[i1][1];
 
 	return vertices;
+}
+
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> set_tuple_data(std::vector<Polygon> network, std::vector<std::vector<int> > edges, std::vector<std::vector<double>> vertices){
+	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data_tuple(network, edges, vertices);
+	return T1_data_tuple;
 }
 
 // Set new cell indices, vertex positions, and edges for T1 left transition
@@ -666,7 +661,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 
 	std::vector<double> L{lx, ly};
 	double pi = atan(1) * 4;
-	double angle = -pi / 2;
+	double angle = pi / 2;
 
 	std::vector<double> v1 = vertices[i1];
 	std::vector<double> vertex2 = vertices[i2];
@@ -678,8 +673,6 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 	vertices[i1][1] = move_transition[1];
 	vertices[i2][0] = move_transition[2];
 	vertices[i2][1] = move_transition[3];
-
-	cout << "network T1 transtion = " << network.size() << "\n";
 
 	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_left_data(network, edges, vertices);
 	return T1_left_data;
@@ -756,8 +749,6 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 	vertices[i1][1] = move_transition[1];
 	vertices[i2][0] = move_transition[2];
 	vertices[i2][1] = move_transition[3];
-
-	cout << "network T1 transtion = " << network.size() << "\n";
 
 	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_right_data(network, edges, vertices);
 	return T1_right_data;
