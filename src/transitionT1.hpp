@@ -34,13 +34,13 @@ Edge 9: i6 - i2
 std::vector<int> get_vertex_indices(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids);
 
 // Get cells and edges associated with short bond length
-std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_0(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices);
+std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices, std::vector<std::vector<int> > edges);
 
 // Get cells and edges associated with left side transition
-std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T2_right(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices);
+std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T2_ccw(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices);
 
 // Get cells and edges associated with rigth side transition
-std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_right(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices);
+std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_ccw(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices);
 
 // Find 4 cells involved with 2 vertices
 // Labeled cells 0 - 3 in counter-clockwise order
@@ -48,27 +48,25 @@ std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_right(std::vec
 std::vector<int> get_4_cells(std::vector<Polygon> network, int i1, int i2);
 
 // Perform T1 transition and check the energy change
-// std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_transition(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges,
-// 																			   double lx, double ly, double lmin, double ka, double Lambda, double gamma);
-std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_transition(std::vector<std::vector<double>> vertices, std::vector<Polygon> network,
-																												std::vector<std::vector<int>> edges, double lx, double ly, double lmin,
-																												double ka, double Lambda, double gamma, double ksep);
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_transition(std::vector<std::vector<double> > vertices, std::vector<Polygon> network,
+																												   std::vector<std::vector<int> > edges, std::vector<double> L, double lmin,
+																												   double ka, double Lambda, double gamma, double ksep);
 
-std::vector<std::vector<double>> set_T1_metastable(int i1, int i2, double lx, double ly, double ksep, std::vector<std::vector<double>> vertices);
+std::vector<std::vector<double> > set_T1_metastable(int i1, int i2, std::vector<double> L, double ksep, std::vector<std::vector<double> > vertices);
 
 // Set new cell indices and edges for T1 left transition
-// std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > set_T1_left(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_l_data, std::vector<int> cell_ids,
+// std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > set_T1_cw(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_cw_data, std::vector<int> cell_ids,
 // 																			 std::vector<std::vector<int> > edges, std::vector<int> vertex_indices);
-std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> set_T1_left(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_l_data,
-																											  std::vector<int> cell_ids, std::vector<std::vector<int>> edges, std::vector<int> vertex_indices, double lx, double ly, double lmin, double ksep,
-																											  std::vector<std::vector<double>> vertices);
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > set_T1_cw(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_cw_data,
+																												 std::vector<int> cell_ids, std::vector<std::vector<int> > edges, std::vector<int> vertex_indices, std::vector<double> L, double lmin, double ksep,
+																												 std::vector<std::vector<double> > vertices);
 
 // Set new cell indices and edges for T1 right transition
-// std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > set_T1_right(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_r_data, std::vector<int> cell_ids,
+// std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > set_T1_ccw(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_ccw_data, std::vector<int> cell_ids,
 // 																			  std::vector<std::vector<int> > edges, std::vector<int> vertex_indices);
-std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> set_T1_right(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_r_data, std::vector<int> cell_ids,
-																											   std::vector<std::vector<int>> edges, std::vector<int> vertex_indices, double lmin, double lx, double ly, double ksep,
-																											   std::vector<std::vector<double>> vertices);
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > set_T1_ccw(std::vector<Polygon> network, std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_ccw_data, std::vector<int> cell_ids,
+																												  std::vector<std::vector<int> > edges, std::vector<int> vertex_indices, std::vector<double> L, double lmin, double ksep,
+																												  std::vector<std::vector<double> > vertices);
 
-std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> set_tuple_data(std::vector<Polygon> network, std::vector<std::vector<int>> edges, std::vector<std::vector<double>> vertices);
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > set_tuple_data(std::vector<Polygon> network, std::vector<std::vector<int> > edges, std::vector<std::vector<double> > vertices);
 #endif

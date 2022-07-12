@@ -9,14 +9,11 @@ using namespace std;
     / returns: a vector with n vectors */
 std::vector<std::vector<double> > zip_vector(std::vector<double> v1, std::vector<double> v2)
 {
-    int i;
-    int n1 = v1.size();
-    int n2 = v2.size();
     std::vector<std::vector<double> > vzip;
 
-    if (n1 == n2)
+    if (v1.size() == v2.size())
     {
-        for (i = 0; i < n1; i++)
+        for (int i = 0; i < v1.size(); i++)
         {
             vzip.insert(vzip.end(), {v1[i], v2[i]});
         }
@@ -86,13 +83,13 @@ std::vector<double> add_vectors(const std::vector<double> &v1, const std::vector
     std::vector<double> vector_summation;
     vector_summation.reserve(v1.size());
 
-    for (int i = 0; i < v1.size(); i++){
+    for (int i = 0; i < v1.size(); i++)
+    {
         vector_summation.push_back(v1[i] + v2[i] + v3[i] + v4[i]);
     }
 
     return vector_summation;
 }
-
 
 // Summation of vectors: creates a vector containing the sums of the elements of two other vectors
 std::vector<double> subtract_vectors(const std::vector<double> &v1, const std::vector<double> &v2)
@@ -155,7 +152,7 @@ std::vector<double> angle_2_vector(double theta)
 {
     double x = cos(theta);
     double y = sin(theta);
-    //double z = theta / 2;
+    // double z = theta / 2;
 
     // Convert to unit vector
     std::vector<double> v1{x, y};
@@ -172,15 +169,6 @@ double vector_2_angle(double x, double y)
     return atan2(y, x);
 }
 
-// Generates random angle theta 
-double random_angle(double min, double max)
-{
-    srand(time(NULL));
-    // general function for random number: double randNum = rand()%(max-min + 1) + min;
-    double theta = fmod(rand(), ((2 * max + 1) + min));
-    return theta;
-}
-
 // Calculates the sqrt of the square of each element in the vector
 std::vector<double> absolute_vector(std::vector<double> vector)
 {
@@ -191,7 +179,6 @@ std::vector<double> absolute_vector(std::vector<double> vector)
     }
     return absolute_vector;
 }
-
 
 /*// Calculates the cross product between two vectors v1 and v2
 std::vector<double> get_cross_product(std::vector<double> v1, std::vector<double> v2)

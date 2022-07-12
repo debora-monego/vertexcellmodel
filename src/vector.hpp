@@ -44,8 +44,8 @@ std::vector<double> angle_2_vector(double theta);
 // Converts vector to angle
 double vector_2_angle(double x, double y);
 
-// Generates random angle theta 
-double random_angle(double min, double max);
+// // Generates random angle theta 
+// double random_angle(double min, double max);
 
 // Calculates the sqrt of the square of each element in the vector
 std::vector<double> absolute_vector(std::vector<double> vector);

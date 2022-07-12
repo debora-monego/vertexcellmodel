@@ -13,7 +13,7 @@ using namespace std;
     / data structures: v1 and v2 are the positions of vertices 1 and 2
     /                  L is a vector with the dimensions of the simulation box
     / returns: vector of doubles */
-std::vector<double> pbc_diff(std::vector<double> v1, std::vector<double> v2, std::vector<double> L);
+std::vector<double> pbc_diff(std::vector<double> v1, std::vector<double> v2, std::vector<double> L, std::vector<int> q);
 
 /* Calculates the area of the base of a polygon
     / Considers the base to be on the xy plane - To do: does this need to be generalized?
@@ -39,6 +39,6 @@ std::vector<double> set_separation_transition(double x0, double y0, double x1, d
 std::vector<double> get_center(std::vector<std::vector<double> > vertices);
 
 // Generates random angle theta 
-double random_angle();
+double random_angle(double min, double max);
 
 #endif

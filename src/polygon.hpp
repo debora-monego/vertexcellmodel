@@ -39,19 +39,19 @@ public:
 
     // Vertices with pbc
     // Returns: Matrix with the coordinates of vertices with periodic boundary conditions
-    std::vector<vector<double> > get_polygon_vertices(std::vector<vector<double> > vertices, std::vector<double> L);
+    std::vector<vector<double> > get_polygon_vertices(std::vector<vector<double> > vertices, std::vector<double> L, std::vector<std::vector<int> > edges);
 
     // Polygon area
     // Returns: Double with polygon area
-    double get_polygon_area(std::vector<vector<double> > vertices, std::vector<double> L);
+    double get_polygon_area(std::vector<vector<double> > vertices, std::vector<double> L, std::vector<std::vector<int> > edges);
 
     // Polygon perimeter
     // Returns: Double with polygon perimeter
-    double get_polygon_perimeter(std::vector<std::vector<double> > vertices, std::vector<double> L);
+    double get_polygon_perimeter(std::vector<std::vector<double> > vertices, std::vector<double> L, std::vector<std::vector<int> > edges);
 
     // Polygon center
     // Returns: Vector with coordinates of polygon center
-    std::vector<double> get_polygon_center(std::vector<std::vector<double> > vertices, std::vector<double> L);
+    std::vector<double> get_polygon_center(std::vector<std::vector<double> > vertices, std::vector<double> L, std::vector<std::vector<int> > edges);
 };
 
 #endif

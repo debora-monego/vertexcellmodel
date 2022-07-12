@@ -16,7 +16,7 @@ using namespace std;
                          ka: double with the modulus constant of the cell - resistance to area changes
                          L: vector with the simulation box dimensions
         returns: double with the elastic energy */
-double get_energy_elasticity(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double ka, std::vector<double> L);
+double get_energy_elasticity(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double ka, std::vector<double> L, std::vector<std::vector<int> > edges);
 
 /* Calculate the adhesion energy
         data structures: vertices: vector of vectors with the coordinates of the polygon's vertices
@@ -32,7 +32,7 @@ double get_energy_adhesion(std::vector<std::vector<double> > vertices, std::vect
                          gamma: double with the elastic constant of the cell
                          L: vector with the simulation box dimensions
         returns: double with the contractility energy */
-double get_energy_contraction(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double gamma, std::vector<double> L);
+double get_energy_contraction(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double gamma, std::vector<double> L, std::vector<std::vector<int> > edges);
 
 // Get total energy
 double get_total_energy(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges, double ka, std::vector<double> L,

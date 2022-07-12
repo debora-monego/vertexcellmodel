@@ -6,18 +6,16 @@
 using namespace std;
 
 // Computes forces in the current configuration of the vertex model
-std::vector<std::vector<double> > get_forces(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges,
-                                             double lx, double ly, double ka, double Lambda, double gamma, double eta, double xi)
+std::vector<std::vector<double>> get_forces(std::vector<std::vector<double>> vertices, std::vector<Polygon> network, std::vector<std::vector<int>> edges,
+                                            std::vector<double> L, double ka, double Lambda, double gamma, double eta, double xi)
 {
-    std::vector<double> L{lx, ly};
-
-    std::vector<std::vector<double> > f1 = calc_force_elasticity(vertices, network, ka, L);
-    std::vector<std::vector<double> > f2 = calc_force_adhesion(vertices, edges, Lambda, L);
-    std::vector<std::vector<double> > f3 = calc_force_contraction(vertices, network, gamma, L);
-    std::vector<std::vector<double> > f4 = calc_force_motility(vertices, network, eta, xi);
+    std::vector<std::vector<double>> f1 = calc_force_elasticity(vertices, network, ka, L, edges);
+    std::vector<std::vector<double>> f2 = calc_force_adhesion(vertices, edges, Lambda, L);
+    std::vector<std::vector<double>> f3 = calc_force_contraction(vertices, network, gamma, L, edges);
+    std::vector<std::vector<double>> f4 = calc_force_motility(vertices, network, eta, xi);
 
     // Initialize total forces vector
-    std::vector<std::vector<double> > result_force(f2.size(), std::vector<double>(2));
+    std::vector<std::vector<double>> result_force(f2.size(), std::vector<double>(2));
     for (int i = 0; i < vertices.size(); i++)
     {
         std::fill(result_force[i].begin(), result_force[i].end(), 0);
@@ -29,85 +27,112 @@ std::vector<std::vector<double> > get_forces(std::vector<std::vector<double> > v
         assert(f3.size() == f2.size());
         assert(f4.size() == f1.size());
 
-       // result_force[i] = scale_vector(add_vectors(f1[i], f2[i], f3[i], f4[i]), -1);
+        result_force[i] = scale_vector(add_vectors(f1[i], f2[i], f3[i], f4[i]), -1);
         // result_force[i] = add_vectors(f1[i], f2[i]);
-        result_force[i] = scale_vector(add_vectors(result_force[i], f3[i]), -1);
+        // result_force[i] = scale_vector(add_vectors(result_force[i], f3[i]), -1);
     }
-
     return result_force;
 }
 
-std::vector<std::vector<double> > move_vertices(std::vector<std::vector<double> > vertices, std::vector<std::vector<double> > forces,
-                                                double lx, double ly, double delta_t, double lmin)
+std::pair<std::vector<std::vector<double> >, std::vector<std::vector<int> > > move_vertices(std::vector<std::vector<double> > vertices, std::vector<std::vector<double> > forces, std::vector<std::vector<int> > edges,
+                                                                                         std::vector<double> L, double delta_t, double lmin)
 {
-
     // Initialize new vertices matrix
-    std::vector<std::vector<double> > updated_vertices(vertices.size(), std::vector<double>(2));
+    std::vector<std::vector<double>> updated_vertices(vertices.size(), std::vector<double>(2));
     for (int i = 0; i < vertices.size(); i++)
     {
         std::fill(updated_vertices[i].begin(), updated_vertices[i].end(), 0);
     }
-    
+
     for (int i = 0; i < vertices.size(); i++)
     {
         assert(vertices.size() == forces.size());
         updated_vertices[i] = add_vectors(vertices[i], scale_vector(forces[i], delta_t));
+
         double diff_dist = get_euclidian_distance(vertices[i][0], vertices[i][1], updated_vertices[i][0], updated_vertices[i][1]);
+
         // Update vertices positions only if the vertex displacement is smaller than lmin/2
-        // This step should prevent cells intersecting each other. ref: https://doi.org/10.1016/j.pbiomolbio.2013.09.003
+        // This step should prevent cells from intersecting each other. ref: https://doi.org/10.1016/j.pbiomolbio.2013.09.003
         if (diff_dist < (lmin / 2))
         {
             vertices[i] = updated_vertices[i];
+
+            // Wrap around periodic boundaries and update periodicity vector q in edges
+            if (vertices[i][0] < 0) // vertex moved across left boundary
+            {
+                // Wrap around to right
+                vertices[i][0] = vertices[i][0] + L[0];
+                for (int j = 0; j < edges.size(); j++)
+                {
+                    if (i == edges[j][0])
+                    {
+                        edges[j][2]++;
+                    }
+                    if (i == edges[j][1])
+                    {
+                        edges[j][2]--;
+                    }
+                }
+            }
+            else if (vertices[i][0] > L[0]) // vertex moved across right boundary
+            {
+                // Wrap around to left
+                vertices[i][0] = vertices[i][0] - L[0];
+                for (int j = 0; j < edges.size(); j++)
+                {
+                    if (i == edges[j][0])
+                    {
+                        edges[j][2]--;
+                    }
+                    if (i == edges[j][1])
+                    {
+                        edges[j][2]++;
+                    }
+                }
+            }
+
+            if (vertices[i][1] < 0) // vertex moved across bottom boundary
+            {
+                // Wrap around to top
+                vertices[i][1] = vertices[i][1] + L[1];
+                for (int j = 0; j < edges.size(); j++)
+                {
+                    if (i == edges[j][0])
+                    {
+                        edges[j][3]++;
+                    }
+                    if (i == edges[j][1])
+                    {
+                        edges[j][3]--;
+                    }
+                }
+            }
+            else if (vertices[i][1] > L[1]) // vertex moved across top boundary
+            {
+                // Wrap around to bottom
+                vertices[i][1] = vertices[i][1] - L[1];
+                for (int j = 0; j < edges.size(); j++)
+                {
+                    if (i == edges[j][0])
+                    {
+                        edges[j][3]--;
+                    }
+                    if (i == edges[j][1])
+                    {
+                        edges[j][3]++;
+                    }
+                }
+            }
         }
     }
 
-    // Wrap around periodic boundaries
-    for (int i = 0; i < vertices.size(); i++)
-    {
-        double x = vertices[i][0];
-        double y = vertices[i][1];
-        // double z = vertices[i][2];
+    std::pair<std::vector<std::vector<double>>, std::vector<vector<int>>> updated_connections(vertices, edges);
 
-        if (x < 0)
-        {
-            // Wrap around to rigth
-            vertices[i][0] = x + lx;
-        }
-        else if (x > lx)
-        {
-            // Wrap around to left
-            vertices[i][0] = x - lx;
-        }
-
-        if (y < 0)
-        {
-            // Wrap around to top
-            vertices[i][1] = y + ly;
-        }
-        else if (y > ly)
-        {
-            // Wrap around to bottom
-            vertices[i][1] = y - ly;
-        }
-
-        /*if (z < 0)
-        {
-            // Wrap around to front
-            vertices[i][2] = z+lz;
-        }
-        else if (z > lz)
-        {
-            // Wrap around to back
-            vertices[i][2] = z-lz;
-        }*/
-    }
-
-    return vertices;
+    return updated_connections;
 }
 
-std::vector<double> get_clockwise(int index, std::vector<int> indices, std::vector<std::vector<double> > vertices, std::vector<double> L)
+std::vector<double> get_clockwise(int index, std::vector<int> indices, std::vector<std::vector<double>> vertices, std::vector<double> L, std::vector<std::vector<int>> edges)
 {
-
     // Find position of vertex in indices list
     int position = -1;
     for (std::size_t i = 0; i < indices.size(); ++i)
@@ -133,12 +158,24 @@ std::vector<double> get_clockwise(int index, std::vector<int> indices, std::vect
     // Calculate vertex position with respect to boundaries
     std::vector<double> v0 = vertices[index];
     std::vector<double> v = vertices[indices[position]];
-    std::vector<double> vc = add_vectors(v0, pbc_diff(v, v0, L));
+    std::vector<int> q{0, 0};
+    for (int j = 0; j < edges.size(); j++)
+    {
+        if (edges[j][0] == index && edges[j][1] == indices[position])
+        {
+            std::vector<int>::const_iterator first = edges[j].begin() + 2;
+            std::vector<int>::const_iterator last = edges[j].begin() + 4;
+            std::vector<int> pbc(first, last);
+            q[0] = q[0] + pbc[0];
+            q[1] = q[1] + pbc[1];
+        }
+    }
+    std::vector<double> vc = add_vectors(v0, pbc_diff(v, v0, L, q));
 
     return vc;
 }
 
-std::vector<double> get_counter_clockwise(int index, std::vector<int> indices, std::vector<std::vector<double> > vertices, std::vector<double> L)
+std::vector<double> get_counter_clockwise(int index, std::vector<int> indices, std::vector<std::vector<double>> vertices, std::vector<double> L, std::vector<std::vector<int>> edges)
 {
     // Find position of vertex in indices list
     int position = -1;
@@ -164,17 +201,29 @@ std::vector<double> get_counter_clockwise(int index, std::vector<int> indices, s
 
     // Calculate vertex position with respect to boundaries
     std::vector<double> v0 = vertices[index];
-    std::vector<double> v = vertices[indices[position]]; // nao da a volta
-    std::vector<double> vcc = add_vectors(v0, pbc_diff(v, v0, L));
+    std::vector<double> v = vertices[indices[position]];
+    std::vector<int> q{0, 0};
+    for (int j = 0; j < edges.size(); j++)
+    {
+        if (edges[j][0] == index && edges[j][1] == indices[position])
+        {
+            std::vector<int>::const_iterator first = edges[j].begin() + 2;
+            std::vector<int>::const_iterator last = edges[j].begin() + 4;
+            std::vector<int> pbc(first, last);
+            q[0] = q[0] + pbc[0];
+            q[1] = q[1] + pbc[1];
+        }
+    }
+    std::vector<double> vcc = add_vectors(v0, pbc_diff(v, v0, L, q));
 
     return vcc;
 }
 
 // Calculate force on vertex due to elasticity
-std::vector<std::vector<double> > calc_force_elasticity(std::vector<vector<double> > vertices, std::vector<Polygon> network, double ka, std::vector<double> L)
+std::vector<std::vector<double>> calc_force_elasticity(std::vector<vector<double>> vertices, std::vector<Polygon> network, double ka, std::vector<double> L, std::vector<std::vector<int>> edges)
 {
     // Initialize force associated with vertex
-    std::vector<std::vector<double> > forces(vertices.size(), std::vector<double>(2));
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
     for (int i = 0; i < vertices.size(); i++)
     {
         std::fill(forces[i].begin(), forces[i].end(), 0);
@@ -194,16 +243,16 @@ std::vector<std::vector<double> > calc_force_elasticity(std::vector<vector<doubl
             {
                 std::vector<int> indices = cell.indices;
                 // Get clockwise vector
-                std::vector<double> vc = get_clockwise(this_vertex, indices, vertices, L);
+                std::vector<double> vc = get_clockwise(this_vertex, indices, vertices, L, edges);
 
                 // Get counter-clockwise vector
-                std::vector<double> vcc = get_counter_clockwise(this_vertex, indices, vertices, L);
+                std::vector<double> vcc = get_counter_clockwise(this_vertex, indices, vertices, L, edges);
 
                 // Get the difference vector
                 std::vector<double> diff = subtract_vectors(vc, vcc);
 
                 // Coompute perpendicular vector to assure correct direction for force is being chosen, i.e. pointing towards vertex (2d)
-                std::vector<std::vector<double> > perp_matrix(2, std::vector<double>(2));
+                std::vector<std::vector<double>> perp_matrix(2, std::vector<double>(2));
                 for (int k = 0; k < perp_matrix.size(); k++)
                 {
                     std::fill(perp_matrix[k].begin(), perp_matrix[k].end(), 0);
@@ -214,7 +263,7 @@ std::vector<std::vector<double> > calc_force_elasticity(std::vector<vector<doubl
                 std::vector<double> force = scale_vector((get_dot_product_matrix(perp_matrix, diff)), -0.5);
 
                 // force contribution from this polygon is stored in force
-                double coeff = ka * (cell.A0 - cell.get_polygon_area(vertices, L));
+                double coeff = ka * (cell.A0 - cell.get_polygon_area(vertices, L, edges));
                 forces[i] = add_vectors(forces[i], (scale_vector(force, coeff)));
             }
         }
@@ -223,10 +272,10 @@ std::vector<std::vector<double> > calc_force_elasticity(std::vector<vector<doubl
 }
 
 // Calculate force due to contraction
-std::vector<std::vector<double> > calc_force_contraction(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double gamma, std::vector<double> L)
+std::vector<std::vector<double>> calc_force_contraction(std::vector<std::vector<double>> vertices, std::vector<Polygon> network, double gamma, std::vector<double> L, std::vector<std::vector<int>> edges)
 {
     // Initialize force associated with vertex
-    std::vector<std::vector<double> > forces(vertices.size(), std::vector<double>(2));
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
     for (int i = 0; i < vertices.size(); i++)
     {
         std::fill(forces[i].begin(), forces[i].end(), 0);
@@ -245,16 +294,18 @@ std::vector<std::vector<double> > calc_force_contraction(std::vector<std::vector
             if (vertex_in_polygon != 0)
             {
                 // Get clockwise vector
-                std::vector<double> vc = get_clockwise(this_vertex, cell.indices, vertices, L);
+                std::vector<double> vc = get_clockwise(this_vertex, cell.indices, vertices, L, edges);
+                std::vector<double> uvc = get_unit_vector(vertices[i], vc);
 
                 // Get counter-clockwise vector
-                std::vector<double> vcc = get_counter_clockwise(this_vertex, cell.indices, vertices, L);
+                std::vector<double> vcc = get_counter_clockwise(this_vertex, cell.indices, vertices, L, edges);
+                std::vector<double> uvcc = get_unit_vector(vcc, vertices[i]);
 
                 // Get the difference vector
-                std::vector<double> diff = subtract_vectors(vc, vcc);
+                std::vector<double> diff = subtract_vectors(uvc, uvcc);
 
                 // Get perimenter for this polygon
-                double perimeter = cell.get_polygon_perimeter(vertices, L);
+                double perimeter = cell.get_polygon_perimeter(vertices, L, edges);
 
                 // Force contribution from this polygon is stored in force
                 forces[i] = add_vectors(forces[i], scale_vector(diff, (gamma * perimeter)));
@@ -265,10 +316,10 @@ std::vector<std::vector<double> > calc_force_contraction(std::vector<std::vector
 }
 
 // Calculate force due to adhesion
-std::vector<std::vector<double> > calc_force_adhesion(std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, double Lambda, std::vector<double> L)
+std::vector<std::vector<double>> calc_force_adhesion(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Lambda, std::vector<double> L)
 {
     // Initialize force associated with vertex
-    std::vector<std::vector<double> > forces(vertices.size(), std::vector<double>(2));
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
     for (int i = 0; i < vertices.size(); i++)
     {
         std::fill(forces[i].begin(), forces[i].end(), 0);
@@ -278,9 +329,12 @@ std::vector<std::vector<double> > calc_force_adhesion(std::vector<std::vector<do
     {
         int i1 = edges[i][0];
         int i2 = edges[i][1];
+        std::vector<int>::const_iterator first = edges[i].begin() + 2;
+        std::vector<int>::const_iterator last = edges[i].begin() + 4;
+        std::vector<int> q(first, last);
         std::vector<double> v1 = vertices[i1];
         std::vector<double> vertex2 = vertices[i2];
-        std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L));
+        std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
         std::vector<double> uv = get_unit_vector(v1, v2);
         forces[i1] = add_vectors(forces[i1], scale_vector(uv, Lambda));
     }
@@ -291,14 +345,14 @@ std::vector<std::vector<double> > calc_force_adhesion(std::vector<std::vector<do
 std::vector<std::vector<double> > calc_force_motility(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double eta, double xi)
 {
     // Initialize force associated with vertex
-    std::vector<std::vector<double> > forces(vertices.size(), std::vector<double>(2));
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
     for (int i = 0; i < vertices.size(); i++)
     {
         std::fill(forces[i].begin(), forces[i].end(), 0);
     }
 
     // Find neighbors for every polygon, i.e. two polygons that share a vertex
-    std::vector<std::vector<double> > avg_angles(network.size(), std::vector<double>(2));
+    std::vector<std::vector<double>> avg_angles(network.size(), std::vector<double>(2));
     for (int i = 0; i < network.size(); i++)
     {
         std::fill(avg_angles[i].begin(), avg_angles[i].end(), 0);
@@ -310,9 +364,9 @@ std::vector<std::vector<double> > calc_force_motility(std::vector<std::vector<do
     for (int i = 0; i < network.size(); i++)
     {
         Polygon cell1 = network[i];
+        avg_angles[i] = add_vectors(avg_angles[i], angle_2_vector(cell1.theta));
         for (int j = 0; j < 2; j++)
         {
-            avg_angles[i] = add_vectors(avg_angles[i], angle_2_vector(cell1.theta));
             for (int m = 0; m < network.size(); m++)
             {
                 Polygon cell2 = network[m];
