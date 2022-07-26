@@ -1,7 +1,6 @@
 #!/usr/bin/bash
 
-
-HOME=/Users/deboramonego/Documents/CellModels/Voronoi
+HOME=/Users/deboramonego/Documents/CellModels/VertexCode/Voronoi
 
 N=$1
 lx=$2
@@ -9,7 +8,7 @@ ly=$3
 
 echo "N = "$N "box size = ["$lx","$ly"]"
 
-folder="voronoi"
+folder="initial_conf"
 # mkdir $folder
 cd $folder
 

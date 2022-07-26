@@ -139,11 +139,10 @@ std::vector<double> set_separation_transition(double x0, double y0, double x1, d
     double y1_rotated = m * v1_rotated[1] + midpoint[1];
 
     std::vector<double> set_separation{x0_rotated, y0_rotated, x1_rotated, y1_rotated};
-    // std::vector<double> set_separation{new_x0, new_y0, new_x1, new_y1};
-    // cout << x0 << "," << y0 << ","
-    //      << "\t" << x1 << "," << y1 << '\n';
-    // cout << x0_rotated << "," << y0_rotated << ","
-    //      << "\t" << x1_rotated << "," << y1_rotated << '\n';
+    cout << x0 << "," << y0 << ","
+         << "\t" << x1 << "," << y1 << '\n';
+    cout << x0_rotated << "," << y0_rotated << ","
+         << "\t" << x1_rotated << "," << y1_rotated << '\n';
     return set_separation;
 }
 

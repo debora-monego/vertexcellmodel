@@ -220,11 +220,11 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         vertices = updated_connections.first;
         edges = updated_connections.second;
 
-        // // Check for T1 transitions
-        // std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data = T1_transition(vertices, network, edges, L, lmin, ka, Lambda, gamma, ksep);
-        // network = std::get<0>(T1_data);
-        // edges = std::get<1>(T1_data);
-        // vertices = std::get<2>(T1_data);
+        // Check for T1 transitions
+        std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data = T1_transition(vertices, network, edges, L, lmin, ka, Lambda, gamma, ksep);
+        network = std::get<0>(T1_data);
+        edges = std::get<1>(T1_data);
+        vertices = std::get<2>(T1_data);
         // for (std::vector<int> i : std::get<1>(T1_data))
         // {
         //     for (int j : i)
