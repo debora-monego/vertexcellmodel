@@ -46,8 +46,6 @@ std::vector<Polygon> build_network(std::vector<std::vector<int> > vertex_indices
 		double pi = atan(1) * 4;
 		std::vector<int> indices = vertex_indices[i];
 		double theta = random_angle(-pi, pi);
-		//cout << theta << "\n";
-		// double theta = (atan(1) * 4)/3;
 		Polygon cell;
 		cell.initialize(i, indices, A0, theta);
 		network.push_back(cell);

@@ -146,11 +146,12 @@ def get_new_index_map(vertices, v, index_map, L):
 
 def check_counter(vertices, poly, L, edges):
     sumEdges = 0
-    sumq1y = 0
+    q = [0,0]
+    pbc = [0,0]
 
     for i, index in enumerate(poly):
 
-        x1, y1 = vertices[index]
+        x1, y1 = vertices[index] + q * L
 
         if i == len(poly) - 1:
             x2, y2 = vertices[poly[0]]
@@ -166,18 +167,24 @@ def check_counter(vertices, poly, L, edges):
             i1 = edge[0]
             i2 = edge[1]
             if i1 == index and i2 == indexv2:
-                q1 = edge[2:]
-                #print(q1)
-                sumq1y += abs(q1[1])
+                pbc = edge[2:]
+                q[0] = q[0] + pbc[0]
+                q[1] = q[1] + pbc[1]
 
-        v_next = v1 + periodic_diff(v2, v1, L, q1)
+        v_next = v1 + periodic_diff(v2, v1, L, q)
+        print(v1, v_next)
         x2, y2 = v_next
+        # if qy != 0:
+        #     sumEdges = sumEdges - ((x2 - x1) * (abs(y2) + abs(y1)))
+        # else:
         sumEdges += (x2 - x1) * (y2 + y1)
+        
 
-    #print(sumq1y)
-    if sumq1y != 0:
-        sumEdges = -sumEdges
-    #print(sumEdges)
+    # print(sumqx)
+    # print(sumqy)
+    # if sumqy != 0:
+    #      sumEdges = -sumEdges
+    # print(sumEdges)
 
     if sumEdges < 0:
         return True
@@ -236,13 +243,14 @@ def get_polygons(regions, index_map, vertices, L, edges):
 
     for i, poly in enumerate(polygons):
         cc = check_counter(vertices, poly, L, edges)
-        #print(poly)
-        #print(cc)
+        print(poly)
+        print(cc)
         if cc == False:
             rev_poly = []
             for index in reversed(poly):
                 rev_poly.append(index)
             polygons[i] = rev_poly
+            print(polygons[i])
 
     # remove duplicates
     new_polygons = []

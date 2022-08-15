@@ -106,7 +106,6 @@ std::vector<int> get_vertex_indices(std::vector<Polygon> network, int i1, int i2
 std::vector<int> get_4_cells(std::vector<Polygon> network, int i1, int i2)
 {
 	std::vector<int> cell_ids(4, -1);
-	// std::fill(cell_ids.begin(), cell_ids.end(), -1); // Fill with -1 to cath errors later
 
 	Polygon cell;
 
@@ -123,13 +122,11 @@ std::vector<int> get_4_cells(std::vector<Polygon> network, int i1, int i2)
 		std::vector<int>::iterator it2;
 		it1 = std::find(cell.indices.begin(), cell.indices.end(), i1);
 		it2 = std::find(cell.indices.begin(), cell.indices.end(), i2);
-		// cout << "entrou no for 1\n";
 
 		if ((it1 != cell.indices.end()) && (it2 != cell.indices.end()))
 		{
 			position1 = std::distance(cell.indices.begin(), it1);
 			position2 = std::distance(cell.indices.begin(), it2);
-			// cout << "nao entrou no if 1\n";
 
 			if ((position1 == 0) && (position2 == (cell.indices.size() - 1)))
 			{
@@ -164,6 +161,379 @@ std::vector<int> get_4_cells(std::vector<Polygon> network, int i1, int i2)
 	}
 	return cell_ids;
 }
+
+// /*
+// Brings the two vertices that are close enough to go through a T1 transition to the same position,
+// i.e., they are now one vertice connected to the other 4 vertices of interest
+// data that will be updated: vertices, edges, polygons
+std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_intermediate(std::vector<Polygon> network, int i1, int i2,
+																												  std::vector<std::vector<double> > vertices, std::vector<int> vertex_indices,
+																												  std::vector<std::vector<int> > edges, std::vector<double> L, int T1_type)
+{
+	// Define polygons
+	Polygon cell_0 = network[0];
+	Polygon cell_1 = network[1];
+	Polygon cell_2 = network[2];
+	Polygon cell_3 = network[3];
+
+	if (T1_type == 0)
+	{ // CW
+	// Cell 0: remove i2
+	int position = 0;
+	std::vector<int>::iterator it;
+	it = std::find(cell_0.indices.begin(), cell_0.indices.end(), i2);
+	if (it != cell_0.indices.end())
+	{
+		position = std::distance(cell_0.indices.begin(), it);
+	}
+	cell_0.indices.erase(cell_0.indices.begin() + position);
+	network[0].indices = cell_0.indices;
+
+	// Cell 2: remove i1
+	it = std::find(cell_2.indices.begin(), cell_2.indices.end(), i1);
+	if (it != cell_2.indices.end())
+	{
+		position = std::distance(cell_2.indices.begin(), it);
+	}
+	cell_2.indices.erase(cell_2.indices.begin() + position);
+	network[2].indices = cell_2.indices;
+	}
+	else if (T1_type == 1)
+	{ // CCW
+	// Cell 0: remove i1
+	int position = 0;
+	std::vector<int>::iterator it;
+	it = std::find(cell_0.indices.begin(), cell_0.indices.end(), i1);
+	if (it != cell_0.indices.end())
+	{
+		position = std::distance(cell_0.indices.begin(), it);
+	}
+	cell_0.indices.erase(cell_0.indices.begin() + position);
+	network[0].indices = cell_0.indices;
+
+	// Cell 2: remove i2
+	it = std::find(cell_2.indices.begin(), cell_2.indices.end(), i2);
+	if (it != cell_2.indices.end())
+	{
+		position = std::distance(cell_2.indices.begin(), it);
+	}
+	cell_2.indices.erase(cell_2.indices.begin() + position);
+	network[2].indices = cell_2.indices;
+	}
+
+	int i3 = vertex_indices[2];
+	int i4 = vertex_indices[3];
+	int i5 = vertex_indices[4];
+	int i6 = vertex_indices[5];
+
+	// Vertices
+	// Initialize copy of vertices
+	std::vector<std::vector<double>> vertices_int(vertices.size(), std::vector<double>(2));
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		vertices_int[i] = vertices[i];
+	}
+
+	std::vector<double> v1 = vertices[i1];
+	std::vector<double> vertex2 = vertices[i2];
+	std::vector<int> q{0, 0};
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i1 && edges[i][1] == i2)
+		{
+			std::vector<int>::const_iterator first = edges[i].begin() + 2;
+			std::vector<int>::const_iterator last = edges[i].begin() + 4;
+			std::vector<int> pbc(first, last);
+			q[0] = q[0] + pbc[0];
+			q[1] = q[1] + pbc[1];
+		}
+	}
+	std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
+
+	// Updated positions of i1 and i2 to be equal to the midpoint between them
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		if (i == i1 || i == i2)
+		{
+			vertices_int[i][0] = (v1[0] + v2[0]) / 2;
+			vertices_int[i][1] = (v1[1] + v2[1]) / 2;
+
+			if (vertices_int[i][0] < 0)
+			{
+				vertices_int[i][0] = vertices_int[i][0] + L[0];
+				for (int j = 0; edges.size(); j++)
+				{
+					if (i == edges[j][0])
+					{
+						edges[j][2]++;
+					}
+					if (i == edges[j][1])
+					{
+						edges[j][2]--;
+					}
+				}
+			}
+			else if (vertices_int[i][0] > L[0])
+			{
+				vertices_int[i][0] = vertices_int[i][0] - L[0];
+				for (int j = 0; j < edges.size(); j++)
+				{
+					if (i == edges[j][0])
+					{
+						edges[j][2]--;
+					}
+					if (i == edges[j][1])
+					{
+						edges[j][2]++;
+					}
+				}
+			}
+			if (vertices_int[i][1] < 0)
+			{
+				vertices_int[i][1] = vertices_int[i][1] + L[1];
+				for (int j = 0; j < edges.size(); j++)
+				{
+					if (i == edges[j][0])
+					{
+						edges[j][3]++;
+					}
+					if (i == edges[j][1])
+					{
+						edges[j][3]--;
+					}
+				}
+			}
+			else if (vertices_int[i][1] > L[1])
+			{
+				vertices_int[i][1] = vertices_int[i][1] - L[1];
+				for (int j = 0; j < edges.size(); j++)
+				{
+					if (i == edges[j][0])
+					{
+						edges[j][3]--;
+					}
+					if (i == edges[j][1])
+					{
+						edges[j][3]++;
+					}
+				}
+			}
+		}
+	}
+
+	// Edges
+	// Initialize matrix of edges
+	std::vector<std::vector<int>> edges_int(18, std::vector<int>(4, 0));
+	// Update edges
+	// Edge 0 : i1 - i2
+	edges_int[0][0] = i1;
+	edges_int[0][1] = i2;
+	edges_int[0][2] = 0;
+	edges_int[0][3] = 0;
+
+	// Edge 1 : i1 - i3
+	edges_int[1][0] = i1;
+	edges_int[1][1] = i3;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i1 && edges[i][1] == i3)
+		{
+			edges_int[1][2] = edges[i][2];
+			edges_int[1][3] = edges[i][3];
+		}
+	}
+
+	// Edge 2 : i1 - i4
+	edges_int[2][0] = i1;
+	edges_int[2][1] = i4;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i1 && edges[i][1] == i4)
+		{
+			edges_int[2][2] = edges[i][2];
+			edges_int[2][3] = edges[i][3];
+		}
+	}
+
+	// Edge 3 : i2 - i1
+	edges_int[3][0] = i2;
+	edges_int[3][1] = i1;
+	edges_int[3][2] = 0;
+	edges_int[3][3] = 0;
+
+	// Edge 4 : i2 - i5
+	edges_int[4][0] = i2;
+	edges_int[4][1] = i5;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i2 && edges[i][1] == i5)
+		{
+			edges_int[4][2] = edges[i][2];
+			edges_int[4][3] = edges[i][3];
+		}
+	}
+
+	// Edge 5 : i2 - i6
+	edges_int[5][0] = i2;
+	edges_int[5][1] = i6;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i2 && edges[i][1] == i6)
+		{
+			edges_int[5][2] = edges[i][2];
+			edges_int[5][3] = edges[i][3];
+		}
+	}
+
+	// Edge 6 : i3 - i1
+	edges_int[6][0] = i3;
+	edges_int[6][1] = i1;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i3 && edges[i][1] == i1)
+		{
+			edges_int[6][2] = edges[i][2];
+			edges_int[6][3] = edges[i][3];
+		}
+	}
+
+	// Edge 7 : i4 - i1
+	edges_int[7][0] = i4;
+	edges_int[7][1] = i1;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i4 && edges[i][1] == i1)
+		{
+			edges_int[7][2] = edges[i][2];
+			edges_int[7][3] = edges[i][3];
+		}
+	}
+
+	// Edge 8 : i5 - i2
+	edges_int[8][0] = i5;
+	edges_int[8][1] = i2;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i5 && edges[i][1] == i2)
+		{
+			edges_int[8][2] = edges[i][2];
+			edges_int[8][3] = edges[i][3];
+		}
+	}
+
+	// Edge 9 : i6 - i2
+	edges_int[9][0] = i6;
+	edges_int[9][1] = i2;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i6 && edges[i][1] == i2)
+		{
+			edges_int[9][2] = edges[i][2];
+			edges_int[9][3] = edges[i][3];
+		}
+	}
+
+	// Edge 10 : i1 - i5
+	edges_int[10][0] = i1;
+	edges_int[10][1] = i5;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i2 && edges[i][1] == i5)
+		{
+			edges_int[10][2] = edges[i][2];
+			edges_int[10][3] = edges[i][3];
+		}
+	}	
+
+	// Edge 11 : i5 - i1
+	edges_int[10][0] = i5;
+	edges_int[10][1] = i1;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i5 && edges[i][1] == i2)
+		{
+			edges_int[11][2] = edges[i][2];
+			edges_int[11][3] = edges[i][3];
+		}
+	}
+
+	// Edge 12 : i1 - i6
+	edges_int[12][0] = i1;
+	edges_int[12][1] = i6;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i2 && edges[i][1] == i6)
+		{
+			edges_int[12][2] = edges[i][2];
+			edges_int[12][3] = edges[i][3];
+		}
+	}	
+	
+	// Edge 13: i6 - i1
+	edges_int[13][0] = i6;
+	edges_int[13][1] = i1;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i6 && edges[i][1] == i2)
+		{
+			edges_int[13][2] = edges[i][2];
+			edges_int[13][3] = edges[i][3];
+		}
+	}
+
+	// Edge 14: i2 - i3
+	edges_int[14][0] = i2;
+	edges_int[14][1] = i3;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i1 && edges[i][1] == i3)
+		{
+			edges_int[14][2] = edges[i][2];
+			edges_int[14][3] = edges[i][3];
+		}
+	}
+
+	// Edge 15: i3 - i2
+	edges_int[15][0] = i3;
+	edges_int[15][1] = i2;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i3 && edges[i][1] == i1)
+		{
+			edges_int[15][2] = edges[i][2];
+			edges_int[15][3] = edges[i][3];
+		}
+	}
+
+	// Edge 16: i2 - i4
+	edges_int[16][0] = i2;
+	edges_int[16][1] = i4;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i1 && edges[i][1] == i4)
+		{
+			edges_int[16][2] = edges[i][2];
+			edges_int[16][3] = edges[i][3];
+		}
+	}
+
+	// Edge 17: i4 - i2
+	edges_int[17][0] = i4;
+	edges_int[17][1] = i2;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		if (edges[i][0] == i4 && edges[i][1] == i1)
+		{
+			edges_int[17][2] = edges[i][2];
+			edges_int[17][3] = edges[i][3];
+		}
+	}
+
+	std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_int_data(network, edges_int, vertices_int);
+
+	return T1_int_data;
+}
+
 
 // Get polygons and edges associated with original short bond length
 std::pair<std::vector<Polygon>, std::vector<std::vector<int> > > T1_0(std::vector<Polygon> network, int i1, int i2, std::vector<int> cell_ids, std::vector<int> vertex_indices,
@@ -320,6 +690,13 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 																										std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, std::vector<double> L,
 																										double ksep, double lmin)
 {
+	int T1_type = 0;
+
+	// Create intermediate state in which i1=i2
+	std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_int = T1_intermediate(network, i1, i2, vertices, vertex_indices, edges, L, T1_type);
+	std::vector<Polygon> network_int = std::get<0>(T1_int);
+	std::vector<std::vector<int> > edges_int= std::get<1>(T1_int);
+	std::vector<std::vector<double> > vertices_int = std::get<2>(T1_int);
 
 	// Make a copy of polygons
 	std::vector<Polygon> network_cw(4);
@@ -387,6 +764,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	// Edges
 	// Initialize matrix of edges
 	std::vector<std::vector<int> > edges_cw(10, std::vector<int>(4, 0));
+
 	// Update edges
 	// Edge 0 : i1 - i2
 	edges_cw[0][0] = i1;
@@ -395,10 +773,14 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	// Edge 1 : i2 - i3
 	edges_cw[1][0] = i2;
 	edges_cw[1][1] = i3;
+	edges_cw[1][2] = edges_int[14][2];
+	edges_cw[1][3] = edges_int[14][3];
 
 	// Edge 2 : i1 - i4
 	edges_cw[2][0] = i1;
 	edges_cw[2][1] = i4;
+	edges_cw[2][2] = edges_int[2][2];
+	edges_cw[2][3] = edges_int[2][3];
 
 	// Edge 3 : i2 - i1
 	edges_cw[3][0] = i2;
@@ -407,26 +789,38 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	// Edge 4 : i1 - i5
 	edges_cw[4][0] = i1;
 	edges_cw[4][1] = i5;
+	edges_cw[4][2] = edges_int[10][2];
+	edges_cw[4][3] = edges_int[10][3];
 
 	// Edge 5 : i2 - i6
 	edges_cw[5][0] = i2;
 	edges_cw[5][1] = i6;
+	edges_cw[5][2] = edges_int[5][2];
+	edges_cw[5][3] = edges_int[5][3];
 
 	// Edge 6 : i3 - i2
 	edges_cw[6][0] = i3;
 	edges_cw[6][1] = i2;
+	edges_cw[6][2] = edges_int[15][2];
+	edges_cw[6][3] = edges_int[15][3];
 
 	// Edge 7 : i4 - i1
 	edges_cw[7][0] = i4;
 	edges_cw[7][1] = i1;
+	edges_cw[7][2] = edges_int[7][2];
+	edges_cw[7][3] = edges_int[7][3];
 
 	// Edge 8 : i5 - i1
 	edges_cw[8][0] = i5;
 	edges_cw[8][1] = i1;
+	edges_cw[8][2] = edges_int[11][2];
+	edges_cw[8][3] = edges_int[11][3];
 
 	// Edge 9 : i6 - i2
 	edges_cw[9][0] = i6;
 	edges_cw[9][1] = i2;
+	edges_cw[9][2] = edges_int[9][2];
+	edges_cw[9][3] = edges_int[9][3];
 
 	// Vertices
 	// Initialize copy of vertices
@@ -435,15 +829,6 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	{
 		vertices_cw[i] = vertices[i];
 	}
-	//cout << vertices_cw.size() << "\n";
-	// for (std::vector<double> i : vertices_cw)
-	// {
-	// 	for (double j : i)
-	// 	{
-	// 		cout << j << '\t';
-	// 	}
-	// 	cout << '\n';
-	// }
 
 	// Set new vertices positions so that i1 and i2 are separated by ksep * lmin
 	double pi = atan(1) * 4;
@@ -465,19 +850,13 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	}
 	std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
 
-	// cout << "set separation cw\n";
 	std::vector<double> move_transition = set_separation_transition(v1[0], v1[1], v2[0], v2[1], ksep, lmin, angle);
 	vertices_cw[i1][0] = move_transition[0];
 	vertices_cw[i1][1] = move_transition[1];
 	vertices_cw[i2][0] = move_transition[2];
 	vertices_cw[i2][1] = move_transition[3];
 
-	// std::cout << vertices_cw[i1][0] << " " << vertices_cw[i1][1] << " " << vertices_cw[i2][0] << " " << vertices_cw[i2][1] << "\n";
-
 	// Wrap around periodic boundaries and update periodicity vector q in edges
-
-	int qx = q[0];
-	int qy = q[1];
 	for (int j = 0; j < edges_cw.size(); j++)
 	{
 		if ((edges_cw[j][0] == i1 && edges_cw[j][1] == i2) || (edges_cw[j][0] == i2 && edges_cw[j][1] == i1)) 
@@ -485,101 +864,58 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 			if ((vertices_cw[edges_cw[j][0]][0] > 0 && vertices_cw[edges_cw[j][1]][0] < 0) || (vertices_cw[edges_cw[j][0]][0] > L[0] && vertices_cw[edges_cw[j][1]][0] > 0))
 			{
 				edges_cw[j][2]--;
-				if (qx == 0){
-					qx = edges_cw[j][2];
-				}
-				
 			}
 			else if ((vertices_cw[edges_cw[j][0]][0] < 0 && vertices_cw[edges_cw[j][1]][0] > 0) || (vertices_cw[edges_cw[j][0]][0] > 0 && vertices_cw[edges_cw[j][1]][0] > L[0]))
 			{
 				edges_cw[j][2]++;
-				if (qx == 0){
-					qx = edges_cw[j][2];
-				}
 			}
 			if ((vertices_cw[edges_cw[j][0]][1] > 0 && vertices_cw[edges_cw[j][1]][1] < 0) || (vertices_cw[edges_cw[j][0]][1] > L[1] && vertices_cw[edges_cw[j][1]][1] > 0))
 			{
 				edges_cw[j][3]--;
-				if (qy == 0){
-					qy = edges_cw[j][3];
-				}
 			}
 			else if ((vertices_cw[edges_cw[j][0]][1] < 0 && vertices_cw[edges_cw[j][1]][1] > 0) || (vertices_cw[edges_cw[j][0]][1] > 0 && vertices_cw[edges_cw[j][1]][1] > L[1]))
 			{
 				edges_cw[j][3]++;
-				if (qy == 0){
-					qy = edges_cw[j][3];
-				}
 			}
 		} else if (edges_cw[j][0] == i1 || edges_cw[j][0] == i2)
 		{
-			cout << "entered else if\n";
-			//cout << "test" << edges_cw[j][0] << " " << edges_cw[j][1] << "\n";
-			std::vector<double> vertex2_cw = vertices_cw[edges_cw[j][1]];
-			std::vector<int> q_cw{0, 0};
-			for (int k = 0; k < edges.size(); k++)
-			{
-				if ((edges[k][0] == i1 || edges[k][0] == i2) && edges[k][1] == edges_cw[j][1])
-				{
-					std::vector<int>::const_iterator first = edges[k].begin() + 2;
-					std::vector<int>::const_iterator last = edges[k].begin() + 4;
-					std::vector<int> pbc_cw(first, last);
-					q_cw[0] = q_cw[0] + pbc_cw[0] + qx;
-					q_cw[1] = q_cw[1] + pbc_cw[1] + qy;
-				}
-			}
-			std::vector<double> v2_cw = add_vectors(vertices_cw[edges_cw[j][0]], pbc_diff(vertex2_cw, vertices_cw[edges_cw[j][0]], L, q_cw));
-			// cout << "coord = " << v2_cw[0] << " " << v2_cw[1] << "\n";
-
-			if ((vertices_cw[edges_cw[j][0]][0] > 0 && v2_cw[0] < 0) || (vertices_cw[edges_cw[j][0]][0] > L[0] && v2_cw[0] > 0))
-			{
-				edges_cw[j][2]--;
-			}
-			else if ((vertices_cw[edges_cw[j][0]][0] < 0 && v2_cw[0] > 0) || (vertices_cw[edges_cw[j][0]][0] > 0 && v2_cw[0] > L[0]))
+			std::vector<double> vertex2_int = vertices_int[edges_cw[j][0]];
+			std::vector<double> vertex2_cw = vertices_cw[edges_cw[j][0]];
+			if ((vertex2_int[0] > 0 && vertex2_cw[0] < 0) || (vertex2_int[0] > L[0] && vertex2_cw[0] > 0))
 			{
 				edges_cw[j][2]++;
 			}
-			if ((vertices_cw[edges_cw[j][0]][1] > 0 && v2_cw[1] < 0) || (vertices_cw[edges_cw[j][0]][1] > L[1] && v2_cw[1] > 0))
+			else if ((vertex2_int[0] < 0 && vertex2_cw[0] > 0) || (vertex2_int[0] > 0 && vertex2_cw[0] > L[0]))
+			{
+				edges_cw[j][2]--;
+			}
+			if ((vertex2_int[1] > 0 && vertex2_cw[1] < 0) && (vertex2_int[1] > L[1] && vertex2_cw[1] > 0))
+			{
+				edges_cw[j][3]++;
+			}
+			else if ((vertex2_int[1] < 0 && vertex2_cw[1] > 0) || (vertex2_int[1] > 0 && vertex2_cw[1] > L[1]))
 			{
 				edges_cw[j][3]--;
-			}
-			else if ((vertices_cw[edges_cw[j][0]][1] < 0 && v2_cw[1] > 0) || (vertices_cw[edges_cw[j][0]][1] > 0 && v2_cw[1] > L[1]))
-			{
-				cout<< "entered right if\n";
-				edges_cw[j][3]++;
 			}
 		} else if (edges_cw[j][1] == i1 || edges_cw[j][1] == i2)
 		{
-			std::vector<double> vertex2_cw = vertices_cw[edges_cw[j][0]];
-			std::vector<int> q_cw{0, 0};
-			for (int k = 0; k < edges.size(); k++)
-			{
-				if (edges[k][0] == edges_cw[j][0] && (edges[k][1] == i1 || edges[k][1] == i2))
-				{
-					std::vector<int>::const_iterator first = edges[k].begin() + 2;
-					std::vector<int>::const_iterator last = edges[k].begin() + 4;
-					std::vector<int> pbc_cw(first, last);
-					q_cw[0] = q_cw[0] + pbc_cw[0] + qx;
-					q_cw[1] = q_cw[1] + pbc_cw[1] + qy;
-				}
-			}
-			std::vector<double> v2_cw = add_vectors(vertices_cw[edges_cw[j][1]], pbc_diff(vertex2_cw, vertices_cw[edges_cw[j][1]], L, q_cw));
-
-			if ((vertices_cw[edges_cw[j][1]][0] > 0 && v2_cw[0] < 0) || (vertices_cw[edges_cw[j][1]][0] > L[0] && v2_cw[0] > 0))
-			{
-				edges_cw[j][2]++;
-			}
-			else if ((vertices_cw[edges_cw[j][1]][0] < 0 && v2_cw[0] > 0) || (vertices_cw[edges_cw[j][1]][0] > 0 && v2_cw[0] > L[0]))
+			std::vector<double> vertex1_int = vertices_int[edges_cw[j][1]];
+			std::vector<double> vertex1_cw = vertices_cw[edges_cw[j][1]];
+			if ((vertex1_int[0] > 0 && vertex1_cw[0] < 0) || (vertex1_int[0] > L[0] && vertex1_cw[0] > 0))
 			{
 				edges_cw[j][2]--;
 			}
-			if ((vertices_cw[edges_cw[j][1]][1] > 0 && v2_cw[1] < 0) || (vertices_cw[edges_cw[j][1]][1] > L[1] && v2_cw[1] > 0))
+			else if ((vertex1_int[0] < 0 && vertex1_cw[0] > 0) || (vertex1_int[0] > 0 && vertex1_cw[0] > L[0]))
 			{
-				edges_cw[j][3]++;
+				edges_cw[j][2]++;
 			}
-			else if ((vertices_cw[edges_cw[j][1]][1] < 0 && v2_cw[1] > 0) || (vertices_cw[edges_cw[j][1]][1] > 0 && v2_cw[1] > L[1]))
+			if ((vertex1_int[1] > 0 && vertex1_cw[1] < 0) && (vertex1_int[1] > L[1] && vertex1_cw[1] > 0))
 			{
 				edges_cw[j][3]--;
+			}
+			else if ((vertex1_int[1] < 0 && vertex1_cw[1] > 0) || (vertex1_int[1] > 0 && vertex1_cw[1] > L[1]))
+			{
+				edges_cw[j][3]++;
 			}
 		}
 	}
@@ -628,6 +964,14 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 																										std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, std::vector<double> L,
 																										double ksep, double lmin)
 {
+	int T1_type = 1;
+
+	// Create intermediate state in which i1=i2
+	std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_int = T1_intermediate(network, i1, i2, vertices, vertex_indices, edges, L, T1_type);
+
+	std::vector<Polygon> network_int = std::get<0>(T1_int);
+	std::vector<std::vector<int> > edges_int= std::get<1>(T1_int);
+	std::vector<std::vector<double> > vertices_int = std::get<2>(T1_int);
 
 	// Make a copy of polygons
 	std::vector<Polygon> network_ccw(4);
@@ -704,10 +1048,14 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	// Edge 1 : i1 - i3
 	edges_ccw[1][0] = i1;
 	edges_ccw[1][1] = i3;
+	edges_ccw[1][2] = edges_int[1][2];
+	edges_ccw[1][3] = edges_int[1][3];
 
 	// Edge 2 : i1 - i6
 	edges_ccw[2][0] = i1;
 	edges_ccw[2][1] = i6;
+	edges_ccw[2][2] = edges_int[12][2];
+	edges_ccw[2][3] = edges_int[12][3];
 
 	// Edge 3 : i2 - i1
 	edges_ccw[3][0] = i2;
@@ -716,26 +1064,38 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	// Edge 4 : i2 - i5
 	edges_ccw[4][0] = i2;
 	edges_ccw[4][1] = i5;
+	edges_ccw[4][2] = edges_int[4][2];
+	edges_ccw[4][3] = edges_int[4][3];
 
 	// Edge 5 : i2 - i4
 	edges_ccw[5][0] = i2;
 	edges_ccw[5][1] = i4;
+	edges_ccw[5][2] = edges_int[16][2];
+	edges_ccw[5][3] = edges_int[16][3];
 
 	// Edge 6 : i3 - i1
 	edges_ccw[6][0] = i3;
 	edges_ccw[6][1] = i1;
+	edges_ccw[6][2] = edges_int[6][2];
+	edges_ccw[6][3] = edges_int[6][3];
 
 	// Edge 7 : i4 - i2
 	edges_ccw[7][0] = i4;
 	edges_ccw[7][1] = i2;
+	edges_ccw[7][2] = edges_int[17][2];
+	edges_ccw[7][3] = edges_int[17][3];
 
 	// Edge 8 : i5 - i2
 	edges_ccw[8][0] = i5;
 	edges_ccw[8][1] = i2;
+	edges_ccw[8][2] = edges_int[8][2];
+	edges_ccw[8][3] = edges_int[8][3];
 
 	// Edge 9 : i6 - i1
 	edges_ccw[9][0] = i6;
 	edges_ccw[9][1] = i1;
+	edges_ccw[9][2] = edges_int[13][2];
+	edges_ccw[9][3] = edges_int[13][3];
 
 	// Vertices
 	// Initialize copy of vertices
@@ -765,7 +1125,6 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	}
 	std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
 
-	// cout << "set separation ccw\n";
 	std::vector<double> move_transition = set_separation_transition(v1[0], v1[1], v2[0], v2[1], ksep, lmin, angle);
 	vertices_ccw[i1][0] = move_transition[0];
 	vertices_ccw[i1][1] = move_transition[1];
@@ -773,123 +1132,65 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 	vertices_ccw[i2][1] = move_transition[3];
 
 	// Wrap around periodic boundaries and update periodicity vector q in edges 
-	//FIXME maybe I have to change this so that the vertices go to the same point (i1=i2) and then separate into the new distance
-	// i1
-	int qx = q[0];
-	int qy = q[1];
 	for (int j = 0; j < edges_ccw.size(); j++)
 	{
-		cout << "entered first loop \n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n" << vertices_ccw[edges_ccw[j][0]][0] << " " << vertices_ccw[edges_ccw[j][1]][0];
 		if ((edges_ccw[j][0] == i1 && edges_ccw[j][1] == i2) || (edges_ccw[j][0] == i2 && edges_ccw[j][1] == i1))
 		{
 			if ((vertices_ccw[edges_ccw[j][0]][0] > 0 && vertices_ccw[edges_ccw[j][1]][0] < 0) || (vertices_ccw[edges_ccw[j][0]][0] > L[0] && vertices_ccw[edges_ccw[j][1]][0] > 0))
 			{
 				edges_ccw[j][2]--;
-				if (qx == 0){
-					qx = edges_ccw[j][2];
-				}
 			}
 			else if ((vertices_ccw[edges_ccw[j][0]][0] < 0 && vertices_ccw[edges_ccw[j][1]][0] > 0) || (vertices_ccw[edges_ccw[j][0]][0] > 0 && vertices_ccw[edges_ccw[j][1]][0] > L[0]))
 			{
 				edges_ccw[j][2]++;
-				if (qx == 0){
-					qx = edges_ccw[j][2];
-				}
 			}
 			if ((vertices_ccw[edges_ccw[j][0]][1] > 0 && vertices_ccw[edges_ccw[j][1]][1] < 0) || (vertices_ccw[edges_ccw[j][0]][1] > L[1] && vertices_ccw[edges_ccw[j][1]][1] > 0))
 			{
 				edges_ccw[j][3]--;
-				if (qy == 0){
-					qy = edges_ccw[j][3];
-				}
 			}
 			else if ((vertices_ccw[edges_ccw[j][0]][1] < 0 && vertices_ccw[edges_ccw[j][1]][1] > 0) || (vertices_ccw[edges_ccw[j][0]][1] > 0 && vertices_ccw[edges_ccw[j][1]][1] > L[1]))
 			{
 				edges_ccw[j][3]++;
-				if (qy == 0){
-					qy = edges_ccw[j][3];
-				}
 			}
-			cout << "q " << edges_ccw[j][2] << " " << edges_ccw[j][3] << "\n";
 		} else if (edges_ccw[j][0] == i1 || edges_ccw[j][0] == i2)
 		{
-			cout << "entered second loop\n";
-			std::vector<double> vertex2_ccw = vertices_ccw[edges_ccw[j][1]];
-			std::vector<int> q_ccw{0, 0};
-			for (int k = 0; k < edges.size(); k++)
+			std::vector<double> vertex2_int = vertices_int[edges_ccw[j][0]];
+			std::vector<double> vertex2_ccw = vertices_ccw[edges_ccw[j][0]];
+			if ((vertex2_int[0] > 0 && vertex2_ccw[0] < 0) || (vertex2_int[0] > L[0] && vertex2_ccw[0] > 0))
 			{
-				if ((edges[k][0] == i1 || edges[k][0] == i2) && edges[k][1] == edges_ccw[j][1])
-				{
-					std::vector<int>::const_iterator first = edges[k].begin() + 2;
-					std::vector<int>::const_iterator last = edges[k].begin() + 4;
-					std::vector<int> pbc_ccw(first, last);
-					q_ccw[0] = q_ccw[0] + pbc_ccw[0] + qx;
-					q_ccw[1] = q_ccw[1] + pbc_ccw[1] + qy;
-				}
-			}
-			std::vector<double> v2_ccw = add_vectors(vertices_ccw[edges_ccw[j][0]], pbc_diff(vertex2_ccw, vertices_ccw[edges_ccw[j][0]], L, q_ccw));
-			cout << "v1 coord = " << vertices_ccw[edges_ccw[j][0]][0] << " " << vertices_ccw[edges_ccw[j][0]][1] << " v2 coord = " << v2_ccw[0] << " " << v2_ccw[1] << "\n";
-
-			if ((vertices_ccw[edges_ccw[j][0]][0] > 0 && v2_ccw[0] < 0) || (vertices_ccw[edges_ccw[j][0]][0] > L[0] && v2_ccw[0] > 0))
-			{
-				cout << "entered cww loop 2\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
-				edges_ccw[j][2]--;
-			}
-			else if ((vertices_ccw[edges_ccw[j][0]][0] < 0 && v2_ccw[0] > 0) || (vertices_ccw[edges_ccw[j][0]][0] > 0 && v2_ccw[0] > L[0]))
-			{
-				cout << "entered cww loop 3\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
 				edges_ccw[j][2]++;
 			}
-			if ((vertices_ccw[edges_ccw[j][0]][1] > 0 && v2_ccw[1] < 0) || (vertices_ccw[edges_ccw[j][0]][1] > L[1] && v2_ccw[1] > 0))
+			else if ((vertex2_int[0] < 0 && vertex2_ccw[0] > 0) || (vertex2_int[0] > 0 && vertex2_ccw[0] > L[0]))
 			{
-				cout << "entered cww loop 4\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
-				edges_ccw[j][3]--;
+				edges_ccw[j][2]--;
 			}
-			else if ((vertices_ccw[edges_ccw[j][0]][1] < 0 && v2_ccw[1] > 0) || (vertices_ccw[edges_ccw[j][0]][1] > 0 && v2_ccw[1] > L[1]))
+			if ((vertex2_int[1] > 0 && vertex2_ccw[1] < 0) && (vertex2_int[1] > L[1] && vertex2_ccw[1] > 0))
 			{
-				cout << "entered cww loop 5\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
 				edges_ccw[j][3]++;
 			}
-			cout << "q " << edges_ccw[j][2] << " " << edges_ccw[j][3] << "\n";
+			else if ((vertex2_int[1] < 0 && vertex2_ccw[1] > 0) || (vertex2_int[1] > 0 && vertex2_ccw[1] > L[1]))
+			{
+				edges_ccw[j][3]--;
+			}
 		} else if (edges_ccw[j][1] == i1 || edges_ccw[j][1] == i2)
 		{
-			std::vector<double> vertex2_ccw = vertices_ccw[edges_ccw[j][0]];
-			std::vector<int> q_ccw{0, 0};
-			for (int k = 0; k < edges.size(); k++)
+			std::vector<double> vertex1_int = vertices_int[edges_ccw[j][1]];
+			std::vector<double> vertex1_ccw = vertices_ccw[edges_ccw[j][1]];
+			if ((vertex1_int[0] > 0 && vertex1_ccw[0] < 0) || (vertex1_int[0] > L[0] && vertex1_ccw[0] > 0))
 			{
-				if (edges[k][0] == edges_ccw[j][0] && (edges[k][1] == i1 || edges[k][1] == i2))
-				{
-					std::vector<int>::const_iterator first = edges[k].begin() + 2;
-					std::vector<int>::const_iterator last = edges[k].begin() + 4;
-					std::vector<int> pbc_ccw(first, last);
-					q_ccw[0] = q_ccw[0] + pbc_ccw[0] + qx;
-					q_ccw[1] = q_ccw[1] + pbc_ccw[1] + qy;
-					cout << pbc_ccw[0] << " qx = " << q[0] << " " << pbc_ccw[1] << " qy = " << q[1] << "\n";
-				}
-			}
-			std::vector<double> v2_ccw = add_vectors(vertices_ccw[edges_ccw[j][1]], pbc_diff(vertex2_ccw, vertices_ccw[edges_ccw[j][1]], L, q_ccw));
-			cout << "v1 coord = " << vertices_ccw[edges_ccw[j][1]][0] << " " << vertices_ccw[edges_ccw[j][1]][1] << " v2 coord = " << v2_ccw[0] << " " << v2_ccw[1] << "\n";
-			cout << "q " << edges_ccw[j][2] << " " << edges_ccw[j][3] << "\n";
-
-			if ((vertices_ccw[edges_ccw[j][1]][0] > 0 && v2_ccw[0] < 0) || (vertices_ccw[edges_ccw[j][1]][0] > L[0] && v2_ccw[0] > 0))
-			{
-				cout << "entered cww loop 20\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
-				edges_ccw[j][2]++;
-			}
-			else if ((vertices_ccw[edges_ccw[j][1]][0] < 0 && v2_ccw[0] > 0) || (vertices_ccw[edges_ccw[j][1]][0] > 0 && v2_ccw[0] > L[0]))
-			{
-				cout << "entered cww loop 30\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
 				edges_ccw[j][2]--;
 			}
-			if ((vertices_ccw[edges_ccw[j][1]][1] > 0 && v2_ccw[1] < 0) || (vertices_ccw[edges_ccw[j][1]][1] > L[1] && v2_ccw[1] > 0))
+			else if ((vertex1_int[0] < 0 && vertex1_ccw[0] > 0) || (vertex1_int[0] > 0 && vertex1_ccw[0] > L[0]))
 			{
-				cout << "entered cww loop 40\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
-				edges_ccw[j][3]++;
+				edges_ccw[j][2]++;
 			}
-			else if ((vertices_ccw[edges_ccw[j][1]][1] < 0 && v2_ccw[1] > 0) || (vertices_ccw[edges_ccw[j][1]][1] > 0 && v2_ccw[1] > L[1]))
+			if ((vertex1_int[1] > 0 && vertex1_ccw[1] < 0) && (vertex1_int[1] > L[1] && vertex1_ccw[1] > 0))
 			{
-				cout << "entered cww loop 50\n" << "e0 = " << edges_ccw[j][0] << " e1 = " << edges_ccw[j][1] << "\n";
 				edges_ccw[j][3]--;
+			}
+			else if ((vertex1_int[1] < 0 && vertex1_ccw[1] > 0) || (vertex1_int[1] > 0 && vertex1_ccw[1] > L[1]))
+			{
+				edges_ccw[j][3]++;
 			}
 		}
 	}
@@ -944,7 +1245,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 	std::vector<int> reverse;
 
 	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data;
-	// std::vector<Polygon> net_tuple = std::get<0>(T1_data);
+	T1_data = set_tuple_data(network, edges, vertices);
 
 	for (int i = 0; i < edges.size(); i++)
 	{
@@ -969,24 +1270,20 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 			itr = std::find(cell_ids.begin(), cell_ids.end(), -1);
 			if (itr != cell_ids.end())
 			{
-				// cout << "not\n";
 			}
 			else
 			{
-				// cout << "entrou no else not\n";
 				//  Find minimum configuration
 				reverse.insert(reverse.end(), {i2, i1});
 
 				// Find 6 indices for vertices involved in the transition
 				std::vector<int> indices = get_vertex_indices(network, i1, i2, cell_ids);
-				// cout << "i1 = " << indices[0] << " i2 = " << indices[1] << " i3 = " << indices[2] << " i4 = " << indices[3] << " i5 = " << indices[4] << " i6 = " << indices[5] << '\n';
 
 				// Get original configuration
 				std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_0_data = T1_0(network, i1, i2, cell_ids, indices, edges);
 				std::vector<Polygon> network_0 = T1_0_data.first;
 				std::vector<std::vector<int>> edges_0 = T1_0_data.second;
 				double E0 = get_total_energy(vertices, network_0, edges_0, ka, L, Lambda, gamma);
-				cout << "E0 = " << E0 << "\n";
 
 				// Get cw T1 transition
 				std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_cw_data = T1_cw(network, i1, i2, cell_ids, indices, vertices, edges, L, ksep, lmin);
@@ -994,7 +1291,6 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 				std::vector<std::vector<int> > edges_cw = std::get<1>(T1_cw_data);
 				std::vector<std::vector<double> > vertices_cw = std::get<2>(T1_cw_data);
 				double E_cw = get_total_energy(vertices_cw, network_cw, edges_cw, ka, L, Lambda, gamma);
-				cout << "Ecw = " << E_cw << "\n";
 
 				// Get ccw T1 transition
 				std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_ccw_data = T1_ccw(network, i1, i2, cell_ids, indices, vertices, edges, L, ksep, lmin);
@@ -1002,7 +1298,6 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 				std::vector<std::vector<int> > edges_ccw = std::get<1>(T1_ccw_data);
 				std::vector<std::vector<double> > vertices_ccw = std::get<2>(T1_ccw_data);
 				double E_ccw = get_total_energy(vertices_ccw, network_ccw, edges_ccw, ka, L, Lambda, gamma);
-				cout << "Eccw = "  << E_ccw << "\n";
 
 				std::vector<double> all_energies{E0, E_cw, E_ccw};
 				// Get minimum
@@ -1014,27 +1309,23 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 				if (itd != all_energies.end())
 				{
 					min_index = std::distance(all_energies.begin(), itd);
-					cout << "min_index = " << min_index << '\n';
 				}
 
 				// What to do?
 				// Same configuration -> do nothing
 				if (min_index == 0)
 				{
-					// std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_data(network, edges, vertices);
 					T1_data = set_tuple_data(network, edges, vertices);
 				}
 				else if (min_index == 1)
 				{
 					T1_data = set_T1_cw(network, T1_cw_data, cell_ids, edges, indices, L, lmin, ksep, vertices);
 					aux_logfile << "T1" << '\t' << i1 << '\t' << i2 << '\t' << dist << '\n';
-					cout << "transition happened here\n";
 				}
 				else
 				{
 					T1_data = set_T1_ccw(network, T1_ccw_data, cell_ids, edges, indices, L, lmin, ksep, vertices);
 					aux_logfile << "T1" << '\t' << i1 << '\t' << i2 << '\t' << dist << '\n';
-					cout << "transition happened here\n";
 				}
 
 				network = std::get<0>(T1_data);
@@ -1043,6 +1334,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 			}
 		}
 	}
+	
 	return T1_data;
 }
 
@@ -1075,12 +1367,15 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 	int i1 = vertex_indices[0];
 	int i2 = vertex_indices[1];
 	int i3 = vertex_indices[2];
+	int i4 = vertex_indices[3];
 	int i5 = vertex_indices[4];
+	int i6 = vertex_indices[5];
 
 	// Set new edges
 	for (int i = 0; i < edges.size(); i++)
-	{
+	{	
 		std::vector<int> edge = edges[i];
+		// i1-i2 and i2-i1 stay the same
 		if (edge[0] == i1 && edge[1] == i2)
 		{
 			edges[i][2] = edges_cw[0][2];
@@ -1091,45 +1386,55 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 			edges[i][2] = edges_cw[3][2];
 			edges[i][3] = edges_cw[3][3];
 		}
+		// i1-i4 and i4-i1 stay the same
+		if (edge[0] == i1 && edge[1] == i4)
+		{
+			edges[i][2] = edges_cw[2][2];
+			edges[i][3] = edges_cw[2][3];
+		}
+		if (edge[0] == i4 && edge[1] == i1)
+		{
+			edges[i][2] = edges_cw[7][2];
+			edges[i][3] = edges_cw[7][3];
+		}
+		// i2-i6 and i6-i2 stay the same
+		if (edge[0] == i2 && edge[1] == i6)
+		{
+			edges[i][2] = edges_cw[5][2];
+			edges[i][3] = edges_cw[5][3];
+		}
+		if (edge[0] == i6 && edge[1] == i2)
+		{
+			edges[i][2] = edges_cw[9][2];
+			edges[i][3] = edges_cw[9][3];	
+		}
 		// i1-i3 becomes i2-i3
 		if (edge[0] == i1 && edge[1] == i3)
 		{
-			// cout << "i1-i3 becomes i2-i3\n";
-			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i2;
 			edges[i][2] = edges_cw[1][2];
 			edges[i][3] = edges_cw[1][3];
-			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i2-i5 becomes i1-i5
 		if (edge[0] == i2 && edge[1] == i5)
 		{
-			// cout << "i2-i5 becomes i1-i5\n";
-			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i1;
 			edges[i][2] = edges_cw[4][2];
 			edges[i][3] = edges_cw[4][3];
-			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i3-i1 becomes i3-i2
 		if (edge[0] == i3 && edge[1] == i1)
 		{
-			// cout << "i3-i1 becomes i3-i2\n";
-			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i2;
 			edges[i][2] = edges_cw[6][2];
 			edges[i][3] = edges_cw[6][3];
-			// cout << "new = " << edges[i][1] << '\n';
 		}
 		// i5-i2 becomes i5-i1
 		if (edge[0] == i5 && edge[1] == i2)
 		{
-			// cout << "i5-i2 becomes i5-i1\n";
-			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i1;
 			edges[i][2] = edges_cw[8][2];
 			edges[i][3] = edges_cw[8][3];
-			// cout << "new = " << edges[i][1] << '\n';
 		}
 	}
 
@@ -1159,13 +1464,15 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 	// Set new edges
 	int i1 = vertex_indices[0];
 	int i2 = vertex_indices[1];
+	int i3 = vertex_indices[2];
 	int i4 = vertex_indices[3];
+	int i5 = vertex_indices[4];
 	int i6 = vertex_indices[5];
 
 	for (int i = 0; i < edges.size(); i++)
 	{
-		// cout << "Set new edges entered\n";
 		std::vector<int> edge = edges[i];
+		// i1 -i2 and i2-i1 stay the same
 		if (edge[0] == i1 && edge[1] == i2)
 		{
 			edges[i][2] = edges_ccw[0][2];
@@ -1176,48 +1483,59 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 			edges[i][2] = edges_ccw[3][2];
 			edges[i][3] = edges_ccw[3][3];
 		}
+		// i1 -i3 and i3-i1 stay the same
+		if (edge[0] == i1 && edge[1] == i3)
+		{
+			edges[i][2] = edges_ccw[1][2];
+			edges[i][3] = edges_ccw[1][3];
+		}
+		if (edge[0] == i3 && edge[1] == i1)
+		{
+			edges[i][2] = edges_ccw[6][2];
+			edges[i][3] = edges_ccw[6][3];
+		}
+		// i2 -i5 and i5-i2 stay the same
+		if (edge[0] == i2 && edge[1] == i5)
+		{
+			edges[i][2] = edges_ccw[4][2];
+			edges[i][3] = edges_ccw[4][3];
+		}
+		if (edge[0] == i5 && edge[1] == i2)
+		{
+			edges[i][2] = edges_ccw[8][2];
+			edges[i][3] = edges_ccw[8][3];
+		}
 		// i1-i4 becomes i2-i4
 		if (edge[0] == i1 && edge[1] == i4)
 		{
-			// cout << "i1-i4 becomes i2-i4\n";
-			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i2;
 			edges[i][2] = edges_ccw[5][2];
 			edges[i][3] = edges_ccw[5][3];
-			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i2-i6 becomes i1-i6
 		if (edge[0] == i2 && edge[1] == i6)
 		{
-			// cout << "i2-i6 becomes i1-i6\n";
-			// cout << "original = " << edges[i][0] << '\n';
 			edges[i][0] = i1;
 			edges[i][2] = edges_ccw[2][2];
 			edges[i][3] = edges_ccw[2][3];
-			// cout << "new = " << edges[i][0] << '\n';
 		}
 		// i4-i1 becomes i4-i2
 		if (edge[0] == i4 && edge[1] == i1)
 		{
-			// cout << "i4-i1 becomes i4-i2\n";
-			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i2;
 			edges[i][2] = edges_ccw[7][2];
 			edges[i][3] = edges_ccw[7][3];
-			// cout << "new = " << edges[i][1] << '\n';
 		}
 		// i6-i2 becomes i6-i1
 		if (edge[0] == i6 && edge[1] == i2)
 		{
-			// cout << "i6-i2 becomes i6-i1\n";
-			// cout << "original = " << edges[i][1] << '\n';
 			edges[i][1] = i1;
 			edges[i][2] = edges_ccw[9][2];
 			edges[i][3] = edges_ccw[9][3];
-			// cout << "new = " << edges[i][1] << '\n';
 		}
 	}
 
 	std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_CCW_data(network, edges, vertices);
+	
 	return T1_CCW_data;
 }

@@ -12,20 +12,9 @@ double pi = atan(1) * 4;
 std::vector<double> pbc_diff(std::vector<double> v1, std::vector<double> v2, std::vector<double> L, std::vector<int> q)
 {
     std::vector<double> periodic_diff;
-    /*if (L[2] != 0)
-    {
-        double pbcx = fmod((v1[0] - v2[0] + L[0] / 2.), L[0]) - L[0] / 2;
-        double pbcy = fmod((v1[1] - v2[1] + L[1] / 2.), L[1]) - L[1] / 2;
-        double pbcz = fmod((v1[2] - v2[2] + L[2] / 2.), L[2]) - L[2] / 2;
-        periodic_diff.insert(periodic_diff.end(), {pbcx, pbcy, pbcz});
-    }
-    else
-    {*/
     double pbcx = v1[0] - v2[0] + q[0] * L[0];
     double pbcy = v1[1] - v2[1] + q[1] * L[1];
-    //cout << q[0] << " " << L[0] << " " << pbcx << ", " << pbcy << '\n';
     periodic_diff.insert(periodic_diff.end(), {pbcx, pbcy});
-    // }
 
     return periodic_diff;
 }
@@ -113,8 +102,6 @@ std::vector<double> set_separation_transition(double x0, double y0, double x1, d
     std::vector<double> midpoint(2, 0);
     midpoint[0] = (x0 + x1) / 2;
     midpoint[1] = (y0 + y1) / 2;
-    // cout << "x0 = " << x0 << " and x1 = " << x1 << '\n';
-    // cout << "midpoint_x = " << midpoint[0];
 
     // Make the midpoint the origin
     std::vector<double> v0_mid(2, 0);
@@ -123,7 +110,6 @@ std::vector<double> set_separation_transition(double x0, double y0, double x1, d
     v0_mid[1] = y0 - midpoint[1];
     v1_mid[0] = x1 - midpoint[0];
     v1_mid[1] = y1 - midpoint[1];
-    // cout << "v0_mid = " << v0_mid[0] << " v1_mid = " << v1_mid[0] << '\n';
 
     std::vector<double> v0_rotated(2, 0);
     std::vector<double> v1_rotated(2, 0);
@@ -139,10 +125,7 @@ std::vector<double> set_separation_transition(double x0, double y0, double x1, d
     double y1_rotated = m * v1_rotated[1] + midpoint[1];
 
     std::vector<double> set_separation{x0_rotated, y0_rotated, x1_rotated, y1_rotated};
-    cout << x0 << "," << y0 << ","
-         << "\t" << x1 << "," << y1 << '\n';
-    cout << x0_rotated << "," << y0_rotated << ","
-         << "\t" << x1_rotated << "," << y1_rotated << '\n';
+
     return set_separation;
 }
 
@@ -161,18 +144,16 @@ std::vector<double> get_center(std::vector<std::vector<double> > vertices)
     int i;
     double sumX = 0;
     double sumY = 0;
-    // double sumZ = 0;
 
     // sum vertices positions in each component
     for (i = 0; i < vertices.size(); i++)
     {
         sumX += vertices[i][0];
         sumY += vertices[i][1];
-        // sumZ += vertices[i][2];
     }
 
     std::vector<double> center_polygon;
-    center_polygon.insert(center_polygon.end(), {(sumX / vertices.size()), (sumY / vertices.size())}); //, (sumZ / n_vertices)});
+    center_polygon.insert(center_polygon.end(), {(sumX / vertices.size()), (sumY / vertices.size())}); 
 
     return center_polygon;
 }

@@ -152,7 +152,6 @@ std::vector<double> angle_2_vector(double theta)
 {
     double x = cos(theta);
     double y = sin(theta);
-    // double z = theta / 2;
 
     // Convert to unit vector
     std::vector<double> v1{x, y};

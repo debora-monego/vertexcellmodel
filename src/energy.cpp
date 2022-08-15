@@ -39,7 +39,7 @@ double get_energy_elasticity(std::vector<std::vector<double> > vertices, std::ve
         Polygon cell = network[i];
         area = cell.get_polygon_area(vertices, L, edges);
         A0 = cell.A0;
-        //cout << "index = " << i << " area = " << area << " A0 = " << A0 << '\n';
+        // cout << "index = " << i << " area = " << area << " A0 = " << A0 << '\n';
         e += (ka / 2) * pow((area - A0), 2);
     }
     return e;

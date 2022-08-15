@@ -21,7 +21,7 @@
 using namespace std;
 
 void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, std::vector<Polygon> network,
-                        double delta_t, std::vector<double> L, double T, double ka, double Lambda, double gamma, double eta, double xi, double lmin, double ksep)
+                        double delta_t, std::vector<double> L, double T, double ka, double Lambda, double gamma, double eta, double xi, double lmin, double ksep, bool T1_enabled)
 {
 
     // Vertices coordinates
@@ -41,10 +41,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     out_logfile << "TOTAL TIME STEPS = " << T / delta_t << '\n';
     out_logfile << "timestep" << '\t' << "f_total" << '\t' << "f_elasticity" << '\t' << "f_contraction" << '\t'
                 << "f_adhesion" << '\t' << "f_motility" << '\t' << "e_total" << '\t' << "e_elasticity" << '\t'
-                << "e_adhesion" << '\t' << "e_contraction" << '\n';
-    // out_logfile << "timestep" << '\t' << "f_total" << '\t' << "f_elasticity" << '\t' << "f_contraction" << '\t'
-    //             << "f_adhesion" << '\t' << "e_total" << '\t' << "e_elasticity" << '\t'
-    //             << "e_adhesion" << '\t' << "e_contraction" << '\n';
+                << "e_adhesion" << '\t' << "e_contraction" << '\t' << "shape" << '\n';
 
     for (double t = 0; t < T; t = t + delta_t)
     {
@@ -62,6 +59,18 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
 
         // Get total energy
         double e_total = (e_elasticity + e_adhesion + e_contraction);
+
+        // Get shape index
+        double total_perimeter = 0;
+        double total_area = 0;
+        for (int i = 0; i < network.size(); i++){
+            Polygon cell = network[i];
+            double perimeter = cell.get_polygon_perimeter(vertices, L, edges);
+            double area = cell.get_polygon_area(vertices, L, edges);
+            total_area = total_area + area;
+            total_perimeter = total_perimeter + perimeter;
+        }
+        double shape = (total_perimeter / network.size()) / sqrt(total_area / network.size());
 
         //////// Get forces for network ////////
 
@@ -210,30 +219,21 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         // Print results for every time step in output file
         out_logfile << t << '\t' << f_total << '\t' << f_elasticity_total << '\t' << f_contraction_total << '\t'
                     << f_adhesion_total << '\t' << f_motility_total << '\t' << e_total << '\t' << e_elasticity << '\t'
-                    << e_adhesion << '\t' << e_contraction << '\n';
-        // out_logfile << t << '\t' << f_total << '\t' << f_elasticity_total << '\t' << f_contraction_total << '\t'
-        //             << f_adhesion_total << '\t' << e_total << '\t' << e_elasticity << '\t'
-        //             << e_adhesion << '\t' << e_contraction << '\n';
+                    << e_adhesion << '\t' << e_contraction << '\t' << shape << '\n';
 
         // Move vertices
         std::pair<std::vector<std::vector<double> >, std::vector<std::vector<int> > > updated_connections = move_vertices(vertices, forces, edges, L, delta_t, lmin);
         vertices = updated_connections.first;
         edges = updated_connections.second;
 
+        if (T1_enabled == true)
+        {
         // Check for T1 transitions
         std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data = T1_transition(vertices, network, edges, L, lmin, ka, Lambda, gamma, ksep);
         network = std::get<0>(T1_data);
         edges = std::get<1>(T1_data);
         vertices = std::get<2>(T1_data);
-        // for (std::vector<int> i : std::get<1>(T1_data))
-        // {
-        //     for (int j : i)
-        //     {
-        //         cout << j << '\t';
-        //     }
-        //     cout << '\n';
-        // }
-
+        }
 
         // Print coordinates and connections for each timestep
         out_edgefile << "timestep = " << t << '\n';
@@ -267,7 +267,6 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
                 out_cellfile << j << '\t';
             }
             out_cellfile << '\n';
-            // cout << "printed\n";
         }
     }
 
