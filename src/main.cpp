@@ -24,23 +24,36 @@ int main(int argc, char *argv[])
     string cells_file = argv[3];
 
     // Parameters
-    double lx = 10;
-    double ly = 10;
-
+    double lx, ly; // simulation box dimensions
+    sscanf(argv[4],"%lf",&lx);
+    sscanf(argv[5],"%lf",&ly);
     std::vector<double> L{lx, ly};
+    
+    double ka, A0;
+    sscanf(argv[6],"%lf",&ka);
+    sscanf(argv[7],"%lf",&A0);
+    
+    double gamma_f, Lambda_f;
+    sscanf(argv[15],"%lf",&gamma_f);
+    sscanf(argv[16],"%lf",&Lambda_f);
+    double gamma = gamma_f * ka * A0; // hexagonal network
+    double Lambda = Lambda_f * ka * sqrt(pow(A0, 3)); // hexagonal network
 
-    double ka = 1;                 // area force coefficint
-    double A0 = 1;               // current preferred area for polygon
-    double gamma = 0.04 * ka * A0; // hexagonal network
-    double Lambda = 0.12 * ka * sqrt(pow(A0, 3)); // hexagonal network
-    double lmin = 0.07; // edge rearangment treshold
-    double ksep = 1.5;
-    double delta_t = 0.01; // timestep
-    double xi = 0.2;       // motility coefficient
-    double eta = 0.1;      // noise scalling coefficient
+    double lmin, ksep;
+    sscanf(argv[8],"%lf",&lmin);
+    sscanf(argv[9],"%lf",&ksep);
 
-    double T = 0.02; // total simulation time
-    bool T1_enabled = true; // enable T1 transitions
+    double xi, eta;
+    sscanf(argv[10],"%lf",&xi);
+    sscanf(argv[11],"%lf",&eta);
+
+    double delta_t, T;
+    sscanf(argv[12],"%lf",&delta_t);
+    sscanf(argv[13],"%lf",&T);
+
+    bool T1_enabled = argv[14];
+
+    string out_folder = argv[16];
 
     double pi = atan(1) * 4;
 
@@ -60,7 +73,7 @@ int main(int argc, char *argv[])
 
     auto start = high_resolution_clock::now();
 
-    molecular_dynamics(vertices, edges, network, delta_t, L, T, ka, Lambda, gamma, eta, xi, lmin, ksep, T1_enabled);
+    molecular_dynamics(vertices, edges, network, delta_t, L, T, ka, Lambda, gamma, eta, xi, lmin, ksep, T1_enabled, out_folder);
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
