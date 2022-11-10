@@ -98,7 +98,8 @@ double get_energy_contraction(std::vector<std::vector<double> > vertices, std::v
         e += (gamma * pow(perimeter, 2));
     }
     return e;
-}
+} //TODO
+
 
 // Calculate J energy
 double get_energy_j(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<double> L, std::vector<std::vector<int> > edges){
