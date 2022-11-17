@@ -16,7 +16,7 @@ double get_total_energy(std::vector<std::vector<double> > vertices, std::vector<
     // Adhesion energy: e2 = sum{ij} Lambda * lij
     // Lambda: adhesion energy/unit length
     // lij: length of edge between vertex i and j
-    double e2 = get_energy_adhesion(vertices, edges, Lambda, L);
+    double e2 = get_energy_adhesion(vertices, network, edges, gamma, L);
     // Take into account double counting of edges
     e2 = e2 / 4;
     // Contraction energy: e3 = sum_{J=1 to N} (gamma/2) * LJ^2
@@ -24,7 +24,9 @@ double get_total_energy(std::vector<std::vector<double> > vertices, std::vector<
     // LJ: perimeter of cell J
     double e3 = get_energy_contraction(vertices, network, gamma, L, edges);
 
-    return (e1 + e2 + e3);
+    double e4 = get_energy_j(vertices, network, L, edges);
+
+    return (e1 + e2 + e3 + e4);
 }
 
 // Calculate elasticity energy
@@ -46,7 +48,24 @@ double get_energy_elasticity(std::vector<std::vector<double> > vertices, std::ve
 }
 
 // Calculate the adhesion energy
-double get_energy_adhesion(std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, double Lambda, std::vector<double> L)
+double get_energy_adhesion(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges, double gamma, std::vector<double> L)
+{
+    double e = 0;
+    double perimeter = 0;
+    double P0 = 0;
+
+    for (int i =0; i < network.size(); i++)
+    {
+        Polygon cell = network[i];
+        perimeter = cell.get_polygon_perimeter(vertices, L, edges);
+        P0 = cell.P0;
+        e += gamma * (pow(P0, 2) - (2 * P0 * perimeter));
+    }
+    return e;
+}
+
+// Calculate the adhesion energy -  anisotropic VM, line tension
+double get_energy_adhesion_anisotropic(std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, double Lambda, std::vector<double> L)
 {
     double e = 0;
     double dist = 0;
@@ -68,16 +87,32 @@ double get_energy_adhesion(std::vector<std::vector<double> > vertices, std::vect
 }
 
 // Calculate the contraction energy
-double get_energy_contraction(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double gamma, std::vector<double> L, std::vector<std::vector<int> > edges)
-{
+double get_energy_contraction(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double gamma, std::vector<double> L, std::vector<std::vector<int> > edges){
     double e = 0;
     double perimeter = 0;
-
+    
     for (int i = 0; i < network.size(); i++)
     {
         Polygon cell = network[i];
         perimeter = cell.get_polygon_perimeter(vertices, L, edges);
-        e += ((gamma / 2) * pow(perimeter, 2));
+        e += (gamma * pow(perimeter, 2));
+    }
+    return e;
+} //TODO
+
+
+// Calculate J energy
+double get_energy_j(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<double> L, std::vector<std::vector<int> > edges){
+    double e = 0;
+    double perimeter = 0;
+    double J = 0;
+
+     for (int i = 0; i < network.size(); i++)
+    {
+        Polygon cell = network[i];
+        perimeter = cell.get_polygon_perimeter(vertices, L, edges);
+        J = cell.J;
+        e += (J * perimeter);
     }
     return e;
 }

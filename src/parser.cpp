@@ -37,7 +37,7 @@ std::vector<std::vector<int> > read_cell_indices(string networkfile)
 }
 
 // Build network from cell indices
-std::vector<Polygon> build_network(std::vector<std::vector<int> > vertex_indices, double A0)
+std::vector<Polygon> build_network(std::vector<std::vector<int> > vertex_indices, double A0, double P0, double J)
 {
 	std::vector<Polygon> network;
 	for (int i = 0; i < vertex_indices.size(); i++)
@@ -47,7 +47,7 @@ std::vector<Polygon> build_network(std::vector<std::vector<int> > vertex_indices
 		std::vector<int> indices = vertex_indices[i];
 		double theta = random_angle(-pi, pi);
 		Polygon cell;
-		cell.initialize(i, indices, A0, theta);
+		cell.initialize(i, indices, A0, P0, J, theta);
 		network.push_back(cell);
 	}
 	return network;

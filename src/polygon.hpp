@@ -27,13 +27,17 @@ public:
     int id;
     std::vector<int> indices;
     double A0;
+    double P0;
+    double J;
     double theta;
 
-    void initialize(int read_id, std::vector<int> read_indices, double read_A0, double read_theta)
+    void initialize(int read_id, std::vector<int> read_indices, double read_A0, double read_P0, double read_J, double read_theta)
     {
         id = read_id;
         indices = read_indices;
         A0 = read_A0;
+        P0 = read_P0;
+        J = read_J;
         theta = read_theta;
     }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-HOME=/Users/deboramonego/Documents/CellModels/VertexCode/Voronoi
+HOME=/Users/deboramonego/Documents/VertexCellModel-main/Voronoi
 
 N=$1
 lx=$2

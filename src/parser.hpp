@@ -33,7 +33,7 @@ using namespace std;
 std::vector<std::vector<int> > read_cell_indices(string networkfile);
 
 // Build network from cell indices
-std::vector<Polygon> build_network(std::vector<vector<int> > cell_indices, double A0);
+std::vector<Polygon> build_network(std::vector<vector<int> > cell_indices, double A0, double P0, double J);
 
 // Read vertex coordinates
 std::vector<vector<double> > read_vertices(string vertexfile);

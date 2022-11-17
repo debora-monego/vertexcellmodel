@@ -7,12 +7,14 @@ using namespace std;
 
 // Computes forces in the current configuration of the vertex model
 std::vector<std::vector<double>> get_forces(std::vector<std::vector<double>> vertices, std::vector<Polygon> network, std::vector<std::vector<int>> edges,
-                                            std::vector<double> L, double ka, double Lambda, double gamma, double eta, double xi)
+                                            std::vector<double> L, double ka, double Lambda, double gamma, double eta, double xi, double J)
 {
     std::vector<std::vector<double>> f1 = calc_force_elasticity(vertices, network, ka, L, edges);
-    std::vector<std::vector<double>> f2 = calc_force_adhesion(vertices, edges, Lambda, L);
+    std::vector<std::vector<double>> f2 = calc_force_adhesion(vertices, network, edges, gamma, L);
     std::vector<std::vector<double>> f3 = calc_force_contraction(vertices, network, gamma, L, edges);
     std::vector<std::vector<double>> f4 = calc_force_motility(vertices, network, eta, xi);
+    std::vector<std::vector<double>> f5 = calc_force_adhesion_anisotropic(vertices, edges, Lambda, L);
+    std::vector<std::vector<double>> f6 = calc_force_J(vertices, edges, network, J, L);
 
     // Initialize total forces vector
     std::vector<std::vector<double>> result_force(f2.size(), std::vector<double>(2));
@@ -26,8 +28,10 @@ std::vector<std::vector<double>> get_forces(std::vector<std::vector<double>> ver
         assert(f1.size() == f2.size());
         assert(f3.size() == f2.size());
         assert(f4.size() == f1.size());
+        assert(f4.size() == f5.size());
+        assert(f5.size() == f6.size());
 
-        result_force[i] = scale_vector(add_vectors(f1[i], f2[i], f3[i], f4[i]), -1);
+        result_force[i] = scale_vector(add_vectors(f1[i], f2[i], f3[i], f6[i]), -1);
         // result_force[i] = add_vectors(f1[i], f2[i]);
         // result_force[i] = scale_vector(add_vectors(result_force[i], f3[i]), -1);
     }
@@ -308,7 +312,7 @@ std::vector<std::vector<double>> calc_force_contraction(std::vector<std::vector<
                 double perimeter = cell.get_polygon_perimeter(vertices, L, edges);
 
                 // Force contribution from this polygon is stored in force
-                forces[i] = add_vectors(forces[i], scale_vector(diff, (gamma * perimeter)));
+                forces[i] = add_vectors(forces[i], scale_vector(diff, (- gamma * perimeter)));
             }
         }
     }
@@ -316,7 +320,48 @@ std::vector<std::vector<double>> calc_force_contraction(std::vector<std::vector<
 }
 
 // Calculate force due to adhesion
-std::vector<std::vector<double>> calc_force_adhesion(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Lambda, std::vector<double> L)
+std::vector<std::vector<double> > calc_force_adhesion(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges, double gamma, std::vector<double> L)
+{
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        std::fill(forces[i].begin(), forces[i].end(), 0);
+    }
+
+    // Iterate over vertices and calculate force
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        int this_vertex = i;
+
+        // Find polygons with this vertex
+        for (int j = 0; j < network.size(); j++)
+        {
+            Polygon cell = network[j];
+            bool vertex_in_polygon = (std::find(cell.indices.begin(), cell.indices.end(), this_vertex) != cell.indices.end());
+            if (vertex_in_polygon != 0)
+            {
+                // Get clockwise vector
+                std::vector<double> vc = get_clockwise(this_vertex, cell.indices, vertices, L, edges);
+                std::vector<double> uvc = get_unit_vector(vertices[i], vc);
+
+                // Get counter-clockwise vector
+                std::vector<double> vcc = get_counter_clockwise(this_vertex, cell.indices, vertices, L, edges);
+                std::vector<double> uvcc = get_unit_vector(vcc, vertices[i]);
+
+                // Get the difference vector
+                std::vector<double> diff = subtract_vectors(uvc, uvcc);
+
+                // Force contribution from this polygon is stored in force
+                double coeff = 2 * gamma * cell.P0;
+                forces[i] = add_vectors(forces[i], scale_vector(diff, coeff));
+            }
+        }
+    }
+    return forces;
+}
+
+// Calculate force due to adhesion - interfacial energy - anisotropic vertex model
+std::vector<std::vector<double>> calc_force_adhesion_anisotropic(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Lambda, std::vector<double> L)
 {
     // Initialize force associated with vertex
     std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
@@ -341,8 +386,63 @@ std::vector<std::vector<double>> calc_force_adhesion(std::vector<std::vector<dou
     return forces;
 }
 
+std::vector<std::vector<double>> calc_force_J(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, std::vector<Polygon> network, double J, std::vector<double> L)
+{
+
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        std::fill(forces[i].begin(), forces[i].end(), 0);
+    }
+
+    for (int i = 0; i < edges.size(); i++)
+    {
+        int i1 = edges[i][0];
+        int i2 = edges[i][1];
+        std::vector<int>::const_iterator first = edges[i].begin() + 2;
+        std::vector<int>::const_iterator last = edges[i].begin() + 4;
+        std::vector<int> q(first, last);
+        std::vector<double> v1 = vertices[i1];
+        std::vector<double> vertex2 = vertices[i2];
+        std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
+        std::vector<double> uv = get_unit_vector(v1, v2);
+        forces[i1] = add_vectors(forces[i1], scale_vector(uv, J));
+
+        // for (int i = 0; i < vertices.size(); i++)
+        // {
+        //    int this_vertex = i;
+
+        //    // std::vector<Polygon> cells_this_vertex(3);
+
+        //     //  // Find polygons with this vertex
+        //     //  for (int j = 0; j < network.size(); j++)
+        //     //  {
+        //     //      Polygon cell = network[j];
+        //     //      bool vertex_in_polygon = (std::find(cell.indices.begin(), cell.indices.end(), this_vertex) != cell.indices.end());
+        //     //      if (vertex_in_polygon != 0)
+        //     //      {
+        //     //         cells_this_vertex.push_back(cell);
+        //     //      }
+        //     //  }
+        //     //TODO add comparison between cell types
+        //     // std::vector<int> cell_type(Polygon.size());
+        //     // std::vector<std::vector<double> > J_types();
+        //     // cell_type1 cell_type1 J11
+        //     // cell_type2 cell_type2 J22
+        //     // cell_type1 cell_type2 J12
+        //     // for (int j = 0; j < cells_this_vertex.size(); j++){
+        //     //     if //add comparison different types of cells to find J
+        //     //     coeff = -J;
+        //     //     forces[i] =+ coeff;
+        //     // }
+        //     double coeff = -3*J;
+        //     forces[i] = coeff;
+    }
+    return forces;
+}
+
 // Force to move vertices of polygons in a particular direction
-std::vector<std::vector<double> > calc_force_motility(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double eta, double xi)
+std::vector<std::vector<double>> calc_force_motility(std::vector<std::vector<double>> vertices, std::vector<Polygon> network, double eta, double xi)
 {
     // Initialize force associated with vertex
     std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));

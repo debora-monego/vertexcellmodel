@@ -29,31 +29,33 @@ int main(int argc, char *argv[])
     sscanf(argv[5],"%lf",&ly);
     std::vector<double> L{lx, ly};
     
-    double ka, A0;
+    double ka, A0, P0, J;
     sscanf(argv[6],"%lf",&ka);
     sscanf(argv[7],"%lf",&A0);
+    sscanf(argv[8],"%lf",&P0);
+    sscanf(argv[9],"%lf",&J);
     
     double gamma_f, Lambda_f;
-    sscanf(argv[15],"%lf",&gamma_f);
-    sscanf(argv[16],"%lf",&Lambda_f);
+    sscanf(argv[17],"%lf",&gamma_f);
+    sscanf(argv[18],"%lf",&Lambda_f);
     double gamma = gamma_f * ka * A0; // hexagonal network
     double Lambda = Lambda_f * ka * sqrt(pow(A0, 3)); // hexagonal network
 
     double lmin, ksep;
-    sscanf(argv[8],"%lf",&lmin);
-    sscanf(argv[9],"%lf",&ksep);
+    sscanf(argv[10],"%lf",&lmin);
+    sscanf(argv[11],"%lf",&ksep);
 
     double xi, eta;
-    sscanf(argv[10],"%lf",&xi);
-    sscanf(argv[11],"%lf",&eta);
+    sscanf(argv[12],"%lf",&xi);
+    sscanf(argv[13],"%lf",&eta);
 
     double delta_t, T;
-    sscanf(argv[12],"%lf",&delta_t);
-    sscanf(argv[13],"%lf",&T);
+    sscanf(argv[14],"%lf",&delta_t);
+    sscanf(argv[15],"%lf",&T);
 
-    bool T1_enabled = argv[14];
+    bool T1_enabled = argv[16];
 
-    string out_folder = argv[16];
+    string out_folder = argv[19];
 
     double pi = atan(1) * 4;
 
@@ -69,11 +71,11 @@ int main(int argc, char *argv[])
     std::vector<std::vector<int> > vertex_indices;
     vertex_indices = read_cell_indices(cells_file);
     std::vector<Polygon> network;
-    network = build_network(vertex_indices, A0);
+    network = build_network(vertex_indices, A0, P0, J);
 
     auto start = high_resolution_clock::now();
 
-    molecular_dynamics(vertices, edges, network, delta_t, L, T, ka, Lambda, gamma, eta, xi, lmin, ksep, T1_enabled, out_folder);
+    molecular_dynamics(vertices, edges, network, delta_t, L, T, ka, Lambda, gamma, eta, xi, J, lmin, ksep, T1_enabled, out_folder);
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
