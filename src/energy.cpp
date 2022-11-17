@@ -26,7 +26,7 @@ double get_total_energy(std::vector<std::vector<double> > vertices, std::vector<
 
     double e4 = get_energy_j(vertices, network, L, edges);
 
-    return (e1 + e2 + e3);
+    return (e1 + e2 + e3 + e4);
 }
 
 // Calculate elasticity energy

@@ -395,35 +395,48 @@ std::vector<std::vector<double>> calc_force_J(std::vector<std::vector<double>> v
         std::fill(forces[i].begin(), forces[i].end(), 0);
     }
 
-    for (int i = 0; i < vertices.size(); i++)
+    for (int i = 0; i < edges.size(); i++)
     {
-       int this_vertex = i;
+        int i1 = edges[i][0];
+        int i2 = edges[i][1];
+        std::vector<int>::const_iterator first = edges[i].begin() + 2;
+        std::vector<int>::const_iterator last = edges[i].begin() + 4;
+        std::vector<int> q(first, last);
+        std::vector<double> v1 = vertices[i1];
+        std::vector<double> vertex2 = vertices[i2];
+        std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
+        std::vector<double> uv = get_unit_vector(v1, v2);
+        forces[i1] = add_vectors(forces[i1], scale_vector(uv, J));
 
-       std::vector<Polygon> cells_this_vertex(3);
+        // for (int i = 0; i < vertices.size(); i++)
+        // {
+        //    int this_vertex = i;
 
-         // Find polygons with this vertex
-         for (int j = 0; j < network.size(); j++)
-         {
-             Polygon cell = network[j];
-             bool vertex_in_polygon = (std::find(cell.indices.begin(), cell.indices.end(), this_vertex) != cell.indices.end());
-             if (vertex_in_polygon != 0)
-             {
-                cells_this_vertex.push_back(cell);
-             }
-         }
-        //TODO add comparison between cell types
-        // std::vector<int> cell_type(Polygon.size());
-        // std::vector<std::vector<double> > J_types();
-        // cell_type1 cell_type1 J11
-        // cell_type2 cell_type2 J22
-        // cell_type1 cell_type2 J12
-        // for (int j = 0; j < cells_this_vertex.size(); j++){
-        //     if //add comparison different types of cells to find J
-        //     coeff = -J;
-        //     forces[i] =+ coeff;
-        // }
-        double coeff = -3*J;
-        forces[i] = coeff;
+        //    // std::vector<Polygon> cells_this_vertex(3);
+
+        //     //  // Find polygons with this vertex
+        //     //  for (int j = 0; j < network.size(); j++)
+        //     //  {
+        //     //      Polygon cell = network[j];
+        //     //      bool vertex_in_polygon = (std::find(cell.indices.begin(), cell.indices.end(), this_vertex) != cell.indices.end());
+        //     //      if (vertex_in_polygon != 0)
+        //     //      {
+        //     //         cells_this_vertex.push_back(cell);
+        //     //      }
+        //     //  }
+        //     //TODO add comparison between cell types
+        //     // std::vector<int> cell_type(Polygon.size());
+        //     // std::vector<std::vector<double> > J_types();
+        //     // cell_type1 cell_type1 J11
+        //     // cell_type2 cell_type2 J22
+        //     // cell_type1 cell_type2 J12
+        //     // for (int j = 0; j < cells_this_vertex.size(); j++){
+        //     //     if //add comparison different types of cells to find J
+        //     //     coeff = -J;
+        //     //     forces[i] =+ coeff;
+        //     // }
+        //     double coeff = -3*J;
+        //     forces[i] = coeff;
     }
     return forces;
 }
