@@ -21,7 +21,8 @@
 using namespace std;
 
 void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<std::vector<int> > edges, std::vector<Polygon> network,
-                        double delta_t, std::vector<double> L, double T, double ka, double Lambda, double gamma, double eta, double xi, double J, double lmin, double ksep, bool T1_enabled, string out_folder)
+                        double delta_t, std::vector<double> L, double T, double ka, double Lambda, double gamma, double eta, double xi, double J, double lmin, double ksep, int T1_enabled, string out_folder,
+                        double lambda_potts)
 {
 
     // Vertices coordinates
@@ -39,10 +40,16 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
     out_logfile.open("./results/log.txt");
     out_logfile << "TOTAL ENERGY AND FORCE IN THE NETWORK AT EVERY TIME STEP\n";
     out_logfile << "TOTAL TIME STEPS = " << T / delta_t << '\n';
-    // out_logfile << "timestep" << '\t' << "f_total" << '\t' << "f_elasticity" << '\t' << "f_contraction" << '\t'
-    //             << "f_adhesion" << '\t' << "f_motility" << '\t' << "e_total" << '\t' << "e_elasticity" << '\t'
-    //             << "e_adhesion" << '\t' << "e_contraction" << '\t' << "shape" << '\n';
-    out_logfile << "timestep" << '\t' << "f_total" << '\t' << "e_total" << '\t' << "shape_index" << '\n';
+
+    // out_logfile << "timestep" << '\t' << "f_total" << '\t' << "e_total" << '\t' << "shape_index" << '\n';
+    // Potts model
+    out_logfile << "timestep" << '\t' << "f_total" <<  '\t' << "f_perimeter_potts" << '\t' << "f_adhesion_potts" << '\t' << "e_total" << '\t' 
+               << "e_perimeter_potts" << '\t' << "e_adhesion_potts" << '\t' << "shape_index" << '\n';
+
+    // // Vertex model
+    // out_logfile << "timestep" << '\t' << "f_total" <<  '\t' << "f_contraction" << '\t' << "f_adhesion" << '\t' << "e_total" << '\t' 
+    //             << "e_contraction" << '\t' << "e_adhesion" << '\t' << "shape_index" << '\n';
+    
 
     for (double t = 0; t < T; t = t + delta_t)
     {
@@ -52,61 +59,120 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         // Get elasticity energy
         double e_elasticity = get_energy_elasticity(vertices, network, ka, L, edges);
 
-        // Get adhesion energy
-        double e_adhesion = get_energy_adhesion(vertices, network, edges, gamma, L);
+        // // Get adhesion energy - Vertex
+        // double e_adhesion = get_energy_adhesion(vertices, edges, Lambda, L);
+        // e_adhesion = e_adhesion / 4;
+        // // Get contraction energy - Vertex
+        // double e_contraction = get_energy_contraction(vertices, network, gamma, L, edges);
+        // // Get total energy - Vertex
+        // double e_total = (e_elasticity + e_adhesion + e_contraction);
 
-        // Get contraction energy
-        double e_contraction = get_energy_contraction(vertices, network, gamma, L, edges);
-
-        double e_J = get_energy_j(vertices, network, L, edges);
-
-        // Get total energy
-        double e_total = (e_elasticity + e_adhesion + e_contraction + e_J);
+        // Get adhesion energy - Potts
+        double e_adhesion_potts = get_energy_adhesion_potts(vertices, network, L, edges);
+        e_adhesion_potts = e_adhesion_potts / 4;
+        // Get perimeter energy - Potts
+        double e_perimeter_potts = get_energy_perimeter_potts(vertices, network, edges, lambda_potts, L);
+        // Get total energy - Potts
+        double e_total = (e_elasticity + e_adhesion_potts + e_perimeter_potts);
 
         // Get shape index
-        double total_perimeter = 0;
-        double total_area = 0;
+        double total_shape_index = 0;
         for (int i = 0; i < network.size(); i++){
             Polygon cell = network[i];
             double perimeter = cell.get_polygon_perimeter(vertices, L, edges);
             double area = cell.get_polygon_area(vertices, L, edges);
-            total_area = total_area + area;
-            total_perimeter = total_perimeter + perimeter;
+            double shape = (perimeter) / sqrt(area);
+            total_shape_index = total_shape_index + shape;
         }
-        double shape = (total_perimeter / network.size()) / sqrt(total_area / network.size());
+        double shape_index = total_shape_index / network.size();
 
         //////// Get forces for network ////////
 
-        // // Get elasticity force
-        // // Initialize forces for every vertex
-        // std::vector<std::vector<double> > f_elasticity(vertices.size(), std::vector<double>(2));
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     std::fill(f_elasticity[i].begin(), f_elasticity[i].end(), 0);
-        // }
+        // Get elasticity force
+        // Initialize forces for every vertex
+        std::vector<std::vector<double> > f_elasticity(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(f_elasticity[i].begin(), f_elasticity[i].end(), 0);
+        }
 
-        // f_elasticity = calc_force_elasticity(vertices, network, ka, L, edges);
+        f_elasticity = calc_force_elasticity(vertices, network, ka, L, edges);
 
-        // std::vector<std::vector<double> > abs_f_elasticity(vertices.size(), std::vector<double>(2));
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     std::fill(abs_f_elasticity[i].begin(), abs_f_elasticity[i].end(), 0);
-        // }
+        std::vector<std::vector<double> > abs_f_elasticity(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(abs_f_elasticity[i].begin(), abs_f_elasticity[i].end(), 0);
+        }
 
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     abs_f_elasticity[i] = absolute_vector(f_elasticity[i]);
-        // }
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            abs_f_elasticity[i] = absolute_vector(f_elasticity[i]);
+        }
 
-        // std::vector<double> f_elasticity_sum(vertices.size());
+        std::vector<double> f_elasticity_sum(vertices.size());
 
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     f_elasticity_sum[i] = std::accumulate(abs_f_elasticity[i].begin(), abs_f_elasticity[i].end(), 0.0);
-        // }
-        // double f_elasticity_total = std::accumulate(f_elasticity_sum.begin(), f_elasticity_sum.end(), 0.0);
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            f_elasticity_sum[i] = std::accumulate(abs_f_elasticity[i].begin(), abs_f_elasticity[i].end(), 0.0);
+        }
+        double f_elasticity_total = std::accumulate(f_elasticity_sum.begin(), f_elasticity_sum.end(), 0.0);
 
-        // // Get contraction force
+        // Get perimeter force - Potts
+        std::vector<std::vector<double> > f_perimeter_potts(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(f_perimeter_potts[i].begin(), f_perimeter_potts[i].end(), 0);
+        }
+
+        f_perimeter_potts = calc_force_perimeter_potts(vertices, network, lambda_potts, L, edges);
+
+        std::vector<std::vector<double> > abs_f_perimeter_potts(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(abs_f_perimeter_potts[i].begin(), abs_f_perimeter_potts[i].end(), 0);
+        }
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            abs_f_perimeter_potts[i] = absolute_vector(f_perimeter_potts[i]);
+        }
+
+        std::vector<double> f_perimeter_potts_sum(vertices.size());
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            f_perimeter_potts_sum[i] = std::accumulate(abs_f_perimeter_potts[i].begin(), abs_f_perimeter_potts[i].end(), 0.0);
+        }
+        double f_perimeter_potts_total = std::accumulate(f_perimeter_potts_sum.begin(), f_perimeter_potts_sum.end(), 0.0);
+
+        // Get adhesion force - Potts
+        std::vector<std::vector<double> > f_adhesion_potts(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(f_adhesion_potts[i].begin(), f_adhesion_potts[i].end(), 0);
+        }
+        f_adhesion_potts = calc_force_adhesion_potts(vertices, edges, network, J, L);
+
+        std::vector<std::vector<double> > abs_f_adhesion_potts(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(abs_f_adhesion_potts[i].begin(), abs_f_adhesion_potts[i].end(), 0);
+        }
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            abs_f_adhesion_potts[i] = absolute_vector(f_adhesion_potts[i]);
+        }
+
+        std::vector<double> f_adhesion_potts_sum(vertices.size());
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            f_adhesion_potts_sum[i] = std::accumulate(abs_f_adhesion_potts[i].begin(), abs_f_adhesion_potts[i].end(), 0.0);
+        }
+        double f_adhesion_potts_total = std::accumulate(f_adhesion_potts_sum.begin(), f_adhesion_potts_sum.end(), 0.0);
+
+        // // Get contraction force - Vertex
         // std::vector<std::vector<double> > f_contraction(vertices.size(), std::vector<double>(2));
         // for (int i = 0; i < vertices.size(); i++)
         // {
@@ -134,7 +200,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         // }
         // double f_contraction_total = std::accumulate(f_contraction_sum.begin(), f_contraction_sum.end(), 0.0);
 
-        // // Get adhesion force
+        // // Get adhesion force - Vertex
         // std::vector<std::vector<double> > f_adhesion(vertices.size(), std::vector<double>(2));
         // for (int i = 0; i < vertices.size(); i++)
         // {
@@ -162,33 +228,33 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         // }
         // double f_adhesion_total = std::accumulate(f_adhesion_sum.begin(), f_adhesion_sum.end(), 0.0);
 
-        // // Get motility force
-        // std::vector<std::vector<double> > f_motility(vertices.size(), std::vector<double>(2));
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     std::fill(f_motility[i].begin(), f_motility[i].end(), 0);
-        // }
+        // Get motility force
+        std::vector<std::vector<double> > f_motility(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(f_motility[i].begin(), f_motility[i].end(), 0);
+        }
 
-        // f_motility = calc_force_motility(vertices, network, eta, xi);
+        f_motility = calc_force_motility(vertices, network, eta, xi);
 
-        // std::vector<std::vector<double> > abs_f_motility(vertices.size(), std::vector<double>(2));
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     std::fill(abs_f_motility[i].begin(), abs_f_motility[i].end(), 0);
-        // }
+        std::vector<std::vector<double> > abs_f_motility(vertices.size(), std::vector<double>(2));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::fill(abs_f_motility[i].begin(), abs_f_motility[i].end(), 0);
+        }
 
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     abs_f_motility[i] = absolute_vector(f_motility[i]);
-        // }
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            abs_f_motility[i] = absolute_vector(f_motility[i]);
+        }
 
-        // std::vector<double> f_motility_sum(vertices.size());
+        std::vector<double> f_motility_sum(vertices.size());
 
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //     f_motility_sum[i] = std::accumulate(abs_f_motility[i].begin(), abs_f_motility[i].end(), 0.0);
-        // }
-        // double f_motility_total = std::accumulate(f_motility_sum.begin(), f_motility_sum.end(), 0.0);
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            f_motility_sum[i] = std::accumulate(abs_f_motility[i].begin(), abs_f_motility[i].end(), 0.0);
+        }
+        double f_motility_total = std::accumulate(f_motility_sum.begin(), f_motility_sum.end(), 0.0);
 
         // Get total force
         // Initialize forces for every vertex
@@ -198,7 +264,7 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
             std::fill(forces[i].begin(), forces[i].end(), 0);
         }
 
-        forces = get_forces(vertices, network, edges, L, ka, Lambda, gamma, eta, xi, J);
+        forces = get_forces(vertices, network, edges, L, ka, Lambda, gamma, eta, xi, J, lambda_potts);
 
         std::vector<std::vector<double> > abs_forces(vertices.size(), std::vector<double>(2));
         for (int i = 0; i < vertices.size(); i++)
@@ -220,20 +286,26 @@ void molecular_dynamics(std::vector<std::vector<double> > vertices, std::vector<
         double f_total = std::accumulate(f_sum.begin(), f_sum.end(), 0.0);
 
         // Print results for every time step in output file
-        // out_logfile << t << '\t' << f_total << '\t' << f_elasticity_total << '\t' << f_contraction_total << '\t'
-        //             << f_adhesion_total << '\t' << f_motility_total << '\t' << e_total << '\t' << e_elasticity << '\t'
-        //             << e_adhesion << '\t' << e_contraction << '\t' << shape << '\n';
-        out_logfile << t << '\t' << f_total << '\t' << e_total << '\t' << shape << '\n';
+
+        // out_logfile << t << '\t' << f_total << '\t' << e_total << '\t' << shape_index << '\n';
+
+        // Potts model 
+        out_logfile << t << '\t' << f_total << '\t' << f_perimeter_potts_total << '\t' << f_adhesion_potts_total << '\t' << e_total << '\t' 
+                   << e_perimeter_potts << '\t' << e_adhesion_potts << '\t' << shape_index << '\n';
+
+        // // Vertex model 
+        // out_logfile << t << '\t' << f_total << '\t' << f_contraction_total << '\t' << f_adhesion_total << '\t' << e_total << '\t' 
+        //             << e_contraction << '\t' << e_adhesion << '\t' << shape_index << '\n';
 
         // Move vertices
         std::pair<std::vector<std::vector<double> >, std::vector<std::vector<int> > > updated_connections = move_vertices(vertices, forces, edges, L, delta_t, lmin);
         vertices = updated_connections.first;
         edges = updated_connections.second;
 
-        if (T1_enabled == true)
+        if (T1_enabled == 1)
         {
         // Check for T1 transitions
-        std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data = T1_transition(vertices, network, edges, L, lmin, ka, Lambda, gamma, ksep);
+        std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_data = T1_transition(vertices, network, edges, L, lmin, ka, Lambda, gamma, ksep, lambda_potts);
         network = std::get<0>(T1_data);
         edges = std::get<1>(T1_data);
         vertices = std::get<2>(T1_data);

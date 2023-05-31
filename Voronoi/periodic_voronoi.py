@@ -5,7 +5,8 @@ import sys
 from tile import *
 from periodic import *
 
-np.random.seed([34123])
+np.random.seed([99874])
+# 34123
 
 N = int(sys.argv[1])
 lx = float(sys.argv[2])

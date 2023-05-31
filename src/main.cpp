@@ -41,6 +41,9 @@ int main(int argc, char *argv[])
     double gamma = gamma_f * ka * A0; // hexagonal network
     double Lambda = Lambda_f * ka * sqrt(pow(A0, 3)); // hexagonal network
 
+    double lambda_potts;
+    sscanf(argv[20],"%lf",&lambda_potts);
+
     double lmin, ksep;
     sscanf(argv[10],"%lf",&lmin);
     sscanf(argv[11],"%lf",&ksep);
@@ -53,7 +56,8 @@ int main(int argc, char *argv[])
     sscanf(argv[14],"%lf",&delta_t);
     sscanf(argv[15],"%lf",&T);
 
-    bool T1_enabled = argv[16];
+    int T1_enabled;
+    sscanf(argv[16],"%d",&T1_enabled);
 
     string out_folder = argv[19];
 
@@ -75,7 +79,9 @@ int main(int argc, char *argv[])
 
     auto start = high_resolution_clock::now();
 
-    molecular_dynamics(vertices, edges, network, delta_t, L, T, ka, Lambda, gamma, eta, xi, J, lmin, ksep, T1_enabled, out_folder);
+    cout << T1_enabled << "\n";
+
+    molecular_dynamics(vertices, edges, network, delta_t, L, T, ka, Lambda, gamma, eta, xi, J, lmin, ksep, T1_enabled, out_folder, lambda_potts);
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);

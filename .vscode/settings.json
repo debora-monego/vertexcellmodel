@@ -66,7 +66,12 @@
         "utility": "cpp",
         "vector": "cpp",
         "filesystem": "cpp",
-        "numeric": "cpp"
+        "numeric": "cpp",
+        "__bits": "cpp",
+        "__verbose_abort": "cpp",
+        "variant": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

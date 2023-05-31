@@ -21,21 +21,23 @@ std::vector<std::vector<double> > calc_force_elasticity(std::vector<std::vector<
 std::vector<std::vector<double> > calc_force_contraction(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double gamma, std::vector<double> L, std::vector<std::vector<int> > edges);
 
 // Calculate force due to adhesion
-std::vector<std::vector<double> > calc_force_adhesion(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges, double gamma, std::vector<double> L);
-
-std::vector<std::vector<double>> calc_force_adhesion_anisotropic(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Lambda, std::vector<double> L);
+std::vector<std::vector<double>> calc_force_adhesion(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Lambda, std::vector<double> L);
 
 // Force to move vertices of polygons in a particular direction
 std::vector<std::vector<double> > calc_force_motility(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, double eta, double xi);
 
-std::vector<std::vector<double>> calc_force_J(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, std::vector<Polygon> network, double J, std::vector<double> L);
-
 // Computes forces in the current configuration of the vertex model
 std::vector<std::vector<double> > get_forces(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges,
-                                             std::vector<double> L, double ka, double Lambda, double gamma, double eta, double xi, double J);
+                                             std::vector<double> L, double ka, double Lambda, double gamma, double eta, double xi, double J, double lambda_potts);
 
 // Employ forces to move vertices' positions
 std::pair<std::vector<std::vector<double> >, std::vector<std::vector<int> > >  move_vertices(std::vector<std::vector<double> > vertices, std::vector<std::vector<double> > forces, std::vector<std::vector<int> > edges,
                                                                               std::vector<double> L, double delta_t, double lmin);
+
+// Calculate force perimeter -- Potts model
+std::vector<std::vector<double>> calc_force_perimeter_potts(std::vector<vector<double>> vertices, std::vector<Polygon> network, double lambda_potts, std::vector<double> L, std::vector<std::vector<int>> edges);
+
+// Calculate force adhesion -- Potts model
+std::vector<std::vector<double>> calc_force_adhesion_potts(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, std::vector<Polygon> network, double J, std::vector<double> L);
 
 #endif

@@ -7,14 +7,21 @@ using namespace std;
 
 // Computes forces in the current configuration of the vertex model
 std::vector<std::vector<double>> get_forces(std::vector<std::vector<double>> vertices, std::vector<Polygon> network, std::vector<std::vector<int>> edges,
-                                            std::vector<double> L, double ka, double Lambda, double gamma, double eta, double xi, double J)
+                                            std::vector<double> L, double ka, double Lambda, double gamma, double eta, double xi, double J, double lambda_potts)
 {
     std::vector<std::vector<double>> f1 = calc_force_elasticity(vertices, network, ka, L, edges);
-    std::vector<std::vector<double>> f2 = calc_force_adhesion(vertices, network, edges, gamma, L);
-    std::vector<std::vector<double>> f3 = calc_force_contraction(vertices, network, gamma, L, edges);
-    std::vector<std::vector<double>> f4 = calc_force_motility(vertices, network, eta, xi);
-    std::vector<std::vector<double>> f5 = calc_force_adhesion_anisotropic(vertices, edges, Lambda, L);
-    std::vector<std::vector<double>> f6 = calc_force_J(vertices, edges, network, J, L);
+
+    // // Vertex model
+    // std::vector<std::vector<double> > f2 = calc_force_adhesion(vertices, edges, Lambda, L);
+    // std::vector<std::vector<double> > f3 = calc_force_contraction(vertices, network, gamma, L, edges);
+
+    // Potts model
+    std::vector<std::vector<double> > f2 = calc_force_perimeter_potts(vertices, network, lambda_potts, L, edges);
+    std::vector<std::vector<double> > f3 = calc_force_adhesion_potts(vertices, edges, network, J, L);
+
+    // // Add motility force
+    // std::vector<std::vector<double>> f4 = calc_force_motility(vertices, network, eta, xi);
+
 
     // Initialize total forces vector
     std::vector<std::vector<double>> result_force(f2.size(), std::vector<double>(2));
@@ -27,13 +34,11 @@ std::vector<std::vector<double>> get_forces(std::vector<std::vector<double>> ver
     {
         assert(f1.size() == f2.size());
         assert(f3.size() == f2.size());
-        assert(f4.size() == f1.size());
-        assert(f4.size() == f5.size());
-        assert(f5.size() == f6.size());
+        //assert(f4.size() == f1.size());
 
-        result_force[i] = scale_vector(add_vectors(f1[i], f2[i], f3[i], f6[i]), -1);
-        // result_force[i] = add_vectors(f1[i], f2[i]);
-        // result_force[i] = scale_vector(add_vectors(result_force[i], f3[i]), -1);
+        // result_force[i] = scale_vector(add_vectors(f1[i], f2[i], f3[i], f4[i]), -1);
+        result_force[i] = add_vectors(f1[i], f2[i]);
+        result_force[i] = scale_vector(add_vectors(result_force[i], f3[i]), -1);
     }
     return result_force;
 }
@@ -223,7 +228,7 @@ std::vector<double> get_counter_clockwise(int index, std::vector<int> indices, s
     return vcc;
 }
 
-// Calculate force on vertex due to elasticity
+// Calculate force on vertex due to elasticity -- same for Potts and Vertex models
 std::vector<std::vector<double>> calc_force_elasticity(std::vector<vector<double>> vertices, std::vector<Polygon> network, double ka, std::vector<double> L, std::vector<std::vector<int>> edges)
 {
     // Initialize force associated with vertex
@@ -275,7 +280,85 @@ std::vector<std::vector<double>> calc_force_elasticity(std::vector<vector<double
     return forces;
 }
 
-// Calculate force due to contraction
+// Calculate force perimeter -- Potts model
+std::vector<std::vector<double>> calc_force_perimeter_potts(std::vector<vector<double>> vertices, std::vector<Polygon> network, double lambda_potts, std::vector<double> L, std::vector<std::vector<int>> edges)
+{
+    // Initialize force associated with vertex
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        std::fill(forces[i].begin(), forces[i].end(), 0);
+    }
+
+    // Iterate over vertices and calculate force
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        int this_vertex = i;
+
+        // Find polygons with this vertex
+        for (int j = 0; j < network.size(); j++)
+        {
+            Polygon cell = network[j];
+            bool vertex_in_polygon = (std::find(cell.indices.begin(), cell.indices.end(), this_vertex) != cell.indices.end());
+            if (vertex_in_polygon != 0)
+            {
+                std::vector<int> indices = cell.indices;
+                // Get clockwise vector
+                std::vector<double> vc = get_clockwise(this_vertex, indices, vertices, L, edges);
+
+                // Get counter-clockwise vector
+                std::vector<double> vcc = get_counter_clockwise(this_vertex, indices, vertices, L, edges);
+
+                // Get the difference vector
+                std::vector<double> diff = subtract_vectors(vc, vcc);
+
+                // Coompute perpendicular vector to assure correct direction for force is being chosen, i.e. pointing towards vertex (2d)
+                std::vector<std::vector<double>> perp_matrix(2, std::vector<double>(2));
+                for (int k = 0; k < perp_matrix.size(); k++)
+                {
+                    std::fill(perp_matrix[k].begin(), perp_matrix[k].end(), 0);
+                }
+                perp_matrix[0][1] = 1;
+                perp_matrix[1][0] = -1;
+
+                std::vector<double> force = scale_vector((get_dot_product_matrix(perp_matrix, diff)), -0.5);
+
+                // force contribution from this polygon is stored in force
+                double coeff = lambda_potts * (cell.P0 - cell.get_polygon_perimeter(vertices, L, edges));
+                forces[i] = add_vectors(forces[i], (scale_vector(force, coeff)));
+            }
+        }
+    }
+    return forces;
+}
+
+// Calculate force adhesion -- Potts model
+std::vector<std::vector<double>> calc_force_adhesion_potts(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, std::vector<Polygon> network, double J, std::vector<double> L)
+{
+
+    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
+    for (int i = 0; i < vertices.size(); i++)
+    {
+        std::fill(forces[i].begin(), forces[i].end(), 0);
+    }
+
+    for (int i = 0; i < edges.size(); i++)
+    {
+        int i1 = edges[i][0];
+        int i2 = edges[i][1];
+        std::vector<int>::const_iterator first = edges[i].begin() + 2;
+        std::vector<int>::const_iterator last = edges[i].begin() + 4;
+        std::vector<int> q(first, last);
+        std::vector<double> v1 = vertices[i1];
+        std::vector<double> vertex2 = vertices[i2];
+        std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
+        std::vector<double> uv = get_unit_vector(v1, v2);
+        forces[i1] = add_vectors(forces[i1], scale_vector(uv, J));
+    }
+    return forces;
+}
+
+// Calculate force due to contraction - Vertex model
 std::vector<std::vector<double>> calc_force_contraction(std::vector<std::vector<double>> vertices, std::vector<Polygon> network, double gamma, std::vector<double> L, std::vector<std::vector<int>> edges)
 {
     // Initialize force associated with vertex
@@ -308,60 +391,30 @@ std::vector<std::vector<double>> calc_force_contraction(std::vector<std::vector<
                 // Get the difference vector
                 std::vector<double> diff = subtract_vectors(uvc, uvcc);
 
+                // Coompute perpendicular vector to assure correct direction for force is being chosen, i.e. pointing towards vertex (2d)
+                std::vector<std::vector<double>> perp_matrix(2, std::vector<double>(2));
+                for (int k = 0; k < perp_matrix.size(); k++)
+                {
+                    std::fill(perp_matrix[k].begin(), perp_matrix[k].end(), 0);
+                }
+                perp_matrix[0][1] = 1;
+                perp_matrix[1][0] = -1;
+
+                std::vector<double> force = scale_vector((get_dot_product_matrix(perp_matrix, diff)), -0.5);
+
                 // Get perimenter for this polygon
                 double perimeter = cell.get_polygon_perimeter(vertices, L, edges);
 
                 // Force contribution from this polygon is stored in force
-                forces[i] = add_vectors(forces[i], scale_vector(diff, (- gamma * perimeter)));
+                forces[i] = add_vectors(forces[i], scale_vector(force, (- gamma * perimeter)));
             }
         }
     }
     return forces;
 }
 
-// Calculate force due to adhesion
-std::vector<std::vector<double> > calc_force_adhesion(std::vector<std::vector<double> > vertices, std::vector<Polygon> network, std::vector<std::vector<int> > edges, double gamma, std::vector<double> L)
-{
-    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
-    for (int i = 0; i < vertices.size(); i++)
-    {
-        std::fill(forces[i].begin(), forces[i].end(), 0);
-    }
-
-    // Iterate over vertices and calculate force
-    for (int i = 0; i < vertices.size(); i++)
-    {
-        int this_vertex = i;
-
-        // Find polygons with this vertex
-        for (int j = 0; j < network.size(); j++)
-        {
-            Polygon cell = network[j];
-            bool vertex_in_polygon = (std::find(cell.indices.begin(), cell.indices.end(), this_vertex) != cell.indices.end());
-            if (vertex_in_polygon != 0)
-            {
-                // Get clockwise vector
-                std::vector<double> vc = get_clockwise(this_vertex, cell.indices, vertices, L, edges);
-                std::vector<double> uvc = get_unit_vector(vertices[i], vc);
-
-                // Get counter-clockwise vector
-                std::vector<double> vcc = get_counter_clockwise(this_vertex, cell.indices, vertices, L, edges);
-                std::vector<double> uvcc = get_unit_vector(vcc, vertices[i]);
-
-                // Get the difference vector
-                std::vector<double> diff = subtract_vectors(uvc, uvcc);
-
-                // Force contribution from this polygon is stored in force
-                double coeff = 2 * gamma * cell.P0;
-                forces[i] = add_vectors(forces[i], scale_vector(diff, coeff));
-            }
-        }
-    }
-    return forces;
-}
-
-// Calculate force due to adhesion - interfacial energy - anisotropic vertex model
-std::vector<std::vector<double>> calc_force_adhesion_anisotropic(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Lambda, std::vector<double> L)
+// Calculate force due to adhesion - interfacial energy - Vertex model
+std::vector<std::vector<double>> calc_force_adhesion(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, double Lambda, std::vector<double> L)
 {
     // Initialize force associated with vertex
     std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
@@ -382,61 +435,6 @@ std::vector<std::vector<double>> calc_force_adhesion_anisotropic(std::vector<std
         std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
         std::vector<double> uv = get_unit_vector(v1, v2);
         forces[i1] = add_vectors(forces[i1], scale_vector(uv, Lambda));
-    }
-    return forces;
-}
-
-std::vector<std::vector<double>> calc_force_J(std::vector<std::vector<double>> vertices, std::vector<std::vector<int>> edges, std::vector<Polygon> network, double J, std::vector<double> L)
-{
-
-    std::vector<std::vector<double>> forces(vertices.size(), std::vector<double>(2));
-    for (int i = 0; i < vertices.size(); i++)
-    {
-        std::fill(forces[i].begin(), forces[i].end(), 0);
-    }
-
-    for (int i = 0; i < edges.size(); i++)
-    {
-        int i1 = edges[i][0];
-        int i2 = edges[i][1];
-        std::vector<int>::const_iterator first = edges[i].begin() + 2;
-        std::vector<int>::const_iterator last = edges[i].begin() + 4;
-        std::vector<int> q(first, last);
-        std::vector<double> v1 = vertices[i1];
-        std::vector<double> vertex2 = vertices[i2];
-        std::vector<double> v2 = add_vectors(v1, pbc_diff(vertex2, v1, L, q));
-        std::vector<double> uv = get_unit_vector(v1, v2);
-        forces[i1] = add_vectors(forces[i1], scale_vector(uv, J));
-
-        // for (int i = 0; i < vertices.size(); i++)
-        // {
-        //    int this_vertex = i;
-
-        //    // std::vector<Polygon> cells_this_vertex(3);
-
-        //     //  // Find polygons with this vertex
-        //     //  for (int j = 0; j < network.size(); j++)
-        //     //  {
-        //     //      Polygon cell = network[j];
-        //     //      bool vertex_in_polygon = (std::find(cell.indices.begin(), cell.indices.end(), this_vertex) != cell.indices.end());
-        //     //      if (vertex_in_polygon != 0)
-        //     //      {
-        //     //         cells_this_vertex.push_back(cell);
-        //     //      }
-        //     //  }
-        //     //TODO add comparison between cell types
-        //     // std::vector<int> cell_type(Polygon.size());
-        //     // std::vector<std::vector<double> > J_types();
-        //     // cell_type1 cell_type1 J11
-        //     // cell_type2 cell_type2 J22
-        //     // cell_type1 cell_type2 J12
-        //     // for (int j = 0; j < cells_this_vertex.size(); j++){
-        //     //     if //add comparison different types of cells to find J
-        //     //     coeff = -J;
-        //     //     forces[i] =+ coeff;
-        //     // }
-        //     double coeff = -3*J;
-        //     forces[i] = coeff;
     }
     return forces;
 }

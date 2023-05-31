@@ -1237,7 +1237,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std
 // Perform T1 transition and check the energy change
 std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std::vector<double>>> T1_transition(std::vector<std::vector<double>> vertices, std::vector<Polygon> network,
 																												std::vector<std::vector<int>> edges, std::vector<double> L, double lmin,
-																												double ka, double Lambda, double gamma, double ksep)
+																												double ka, double Lambda, double gamma, double ksep, double lambda_potts)
 {
 	ofstream aux_logfile;
 	aux_logfile.open("log_aux.txt", std::ios_base::app);
@@ -1283,21 +1283,21 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 				std::pair<std::vector<Polygon>, std::vector<std::vector<int>>> T1_0_data = T1_0(network, i1, i2, cell_ids, indices, edges);
 				std::vector<Polygon> network_0 = T1_0_data.first;
 				std::vector<std::vector<int>> edges_0 = T1_0_data.second;
-				double E0 = get_total_energy(vertices, network_0, edges_0, ka, L, Lambda, gamma);
+				double E0 = get_total_energy(vertices, network_0, edges_0, ka, L, Lambda, gamma, lambda_potts);
 
 				// Get cw T1 transition
 				std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_cw_data = T1_cw(network, i1, i2, cell_ids, indices, vertices, edges, L, ksep, lmin);
 				std::vector<Polygon> network_cw = std::get<0>(T1_cw_data);
 				std::vector<std::vector<int> > edges_cw = std::get<1>(T1_cw_data);
 				std::vector<std::vector<double> > vertices_cw = std::get<2>(T1_cw_data);
-				double E_cw = get_total_energy(vertices_cw, network_cw, edges_cw, ka, L, Lambda, gamma);
+				double E_cw = get_total_energy(vertices_cw, network_cw, edges_cw, ka, L, Lambda, gamma, lambda_potts);
 
 				// Get ccw T1 transition
 				std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_ccw_data = T1_ccw(network, i1, i2, cell_ids, indices, vertices, edges, L, ksep, lmin);
 				std::vector<Polygon> network_ccw = std::get<0>(T1_ccw_data);
 				std::vector<std::vector<int> > edges_ccw = std::get<1>(T1_ccw_data);
 				std::vector<std::vector<double> > vertices_ccw = std::get<2>(T1_ccw_data);
-				double E_ccw = get_total_energy(vertices_ccw, network_ccw, edges_ccw, ka, L, Lambda, gamma);
+				double E_ccw = get_total_energy(vertices_ccw, network_ccw, edges_ccw, ka, L, Lambda, gamma, lambda_potts);
 
 				std::vector<double> all_energies{E0, E_cw, E_ccw};
 				// Get minimum

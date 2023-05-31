@@ -50,7 +50,7 @@ std::tuple<std::vector<Polygon>, std::vector<std::vector<int>>, std::vector<std:
 // Perform T1 transition and check the energy change
 std::tuple<std::vector<Polygon>, std::vector<std::vector<int> >, std::vector<std::vector<double> > > T1_transition(std::vector<std::vector<double> > vertices, std::vector<Polygon> network,
 																												   std::vector<std::vector<int> > edges, std::vector<double> L, double lmin,
-																												   double ka, double Lambda, double gamma, double ksep);
+																												   double ka, double Lambda, double gamma, double ksep, double lambda_potts);
 
 std::vector<std::vector<double> > set_T1_metastable(int i1, int i2, std::vector<double> L, double ksep, std::vector<std::vector<double> > vertices);
 
